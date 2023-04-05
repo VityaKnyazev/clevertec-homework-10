@@ -1,0 +1,13 @@
+db:
+   driverClassName: org.postgresql.Driver
+   jdbcUrl: jdbc:postgresql://localhost:5432/clevertec?charSet=utf-8
+   username: admin
+   password: admin
+   maxPoolSize: 3
+   connectionTimeout: 3000
+hibernate:
+   dialect: org.hibernate.dialect.PostgreSQLDialect
+   showSql: true
+cache:
+   algorithm: LFU
+   size: 5

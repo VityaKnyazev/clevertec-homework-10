@@ -1,0 +1,85 @@
+
+plugins {
+    id 'java-library'
+    id 'org.liquibase.gradle' version '2.1.1'
+    
+    id 'war'
+}
+
+ext {
+	javaVersion = '17'
+
+	postgresqlConVersion = '42.5.1'
+	hikariCPVersion = '5.0.1'
+	
+	hibernateVersion = '6.1.6.Final'
+	jakartaServletApiVersion = '6.0.0'
+	
+	snakeYamlVersion = '2.0'
+	
+	itextPDFVersion = '7.2.5'
+	
+	lombokVersion = '1.18.26'
+	slf4jApiVersion = '2.0.6'
+	logbackVersion = '1.4.5'
+	
+	liquibaseVersion = '4.16.1'
+	piocliVersion = '4.7.0'
+
+	junitJupiterVersion = '5.9.1'
+}
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+    	languageVersion.set(JavaLanguageVersion.of("$javaVersion"))
+    }
+}
+
+compileJava.options.encoding = 'UTF-8'
+compileTestJava.options.encoding = 'UTF-8'
+
+dependencies {	
+
+	implementation "org.postgresql:postgresql:$postgresqlConVersion"
+	implementation "com.zaxxer:HikariCP:$hikariCPVersion"
+	
+	implementation "org.hibernate.orm:hibernate-core:$hibernateVersion"
+		
+	compileOnly "jakarta.servlet:jakarta.servlet-api:$jakartaServletApiVersion"
+	
+	implementation "org.yaml:snakeyaml:$snakeYamlVersion"
+	
+	implementation "com.itextpdf:itext7-core:$itextPDFVersion"
+	
+	compileOnly "org.projectlombok:lombok:$lombokVersion"
+	annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+	
+	implementation "org.slf4j:slf4j-api:$slf4jApiVersion"
+	implementation "ch.qos.logback:logback-classic:$logbackVersion"
+
+	liquibaseRuntime "org.liquibase:liquibase-core:$liquibaseVersion"
+	liquibaseRuntime "info.picocli:picocli:$piocliVersion"
+    liquibaseRuntime "org.postgresql:postgresql:$postgresqlConVersion"
+
+    testImplementation "org.junit.jupiter:junit-jupiter:$junitJupiterVersion"
+}
+
+liquibase {
+  activities {
+    clevertec {
+    	  changeLogFile "/src/main/resources/liquibase/db-clevertec-changelog.xml"
+          driver "org.postgresql.Driver"
+		  url "jdbc:postgresql://localhost:5432/clevertec?useUnicode=true&characterEncoding=UTF-8"
+		  username "admin"
+          password "admin" 
+    }
+  }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

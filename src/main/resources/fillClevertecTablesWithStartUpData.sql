@@ -1,0 +1,60 @@
+Insert Into address(postal_code, country, city, street, building_number) values('21035', 'Russia', 'Moscow', 'Puskins prt.', '128a');
+
+Insert Into shop(name, address_id, phone) values('ShopOfARtAnDWiNE', 1, '+375295684562');
+
+Insert Into product(description, is_auction) values('Сахар СЛАДКИЙ для чая', false);
+Insert Into product(description, is_auction) values('Самовар для водки', true);
+Insert Into product(description, is_auction) values('Чаинки подарочные инсталяционные', true);
+Insert Into product(description, is_auction) values('Вино домашнее красное', false);
+Insert Into product(description, is_auction) values('Штопор гипоаллергенный', false);
+Insert Into product(description, is_auction) values('Вино Кавказское КЛАСИК', false);
+Insert Into product(description, is_auction) values('Набор бокалов для вина', true);
+Insert Into product(description, is_auction) values('Шейкер КАРУСЕЛЬ', true);
+Insert Into product(description, is_auction) values('Подарочный набор ВИНОДЕЛ', true);
+Insert Into product(description, is_auction) values('Холодный лед намороженный', false);
+Insert Into product(description, is_auction) values('Бутылка подарочная именинник', true);
+Insert Into product(description, is_auction) values('Стакан МАЛИНОВСКИЙ', false);
+
+Insert Into storage(product_id, unit, price, quantity) values(1, 't', 2000, 3.2);
+Insert Into storage(product_id, unit, price, quantity) values(5, 'pcs', 4.32, 6);
+Insert Into storage(product_id, unit, price, quantity) values(7, 'unit', 52.48, 2);
+Insert Into storage(product_id, unit, price, quantity) values(4, 'l', 12.8, 4);
+Insert Into storage(product_id, unit, price, quantity) values(2, 'pcs', 25.49, 2);
+Insert Into storage(product_id, unit, price, quantity) values(3, 'kg', 7.82, 12.489);
+Insert Into storage(product_id, unit, price, quantity) values(12, 'unit', 6.21, 2);
+Insert Into storage(product_id, unit, price, quantity) values(8, 'pcs', 45.65, 3);
+Insert Into storage(product_id, unit, price, quantity) values(10, 'g', 0.05, 518);
+Insert Into storage(product_id, unit, price, quantity) values(11, 'pcs', 8.91, 12);
+Insert Into storage(product_id, unit, price, quantity) values(2, 'pcs', 21.43, 1);
+Insert Into storage(product_id, unit, price, quantity) values(3, 'kg', 6.54, 5.047);
+Insert Into storage(product_id, unit, price, quantity) values(4, 'l', 13.4, 8);
+Insert Into storage(product_id, unit, price, quantity) values(5, 'pcs', 3.99, 2);
+Insert Into storage(product_id, unit, price, quantity) values(8, 'pcs', 45.99, 3);
+Insert Into storage(product_id, unit, price, quantity) values(6, 'pcs', 45.65, 3);
+Insert Into storage(product_id, unit, price, quantity) values(4, 'l', 8.1, 2);
+Insert Into storage(product_id, unit, price, quantity) values(3, 'kg', 6.98, 2.113);
+Insert Into storage(product_id, unit, price, quantity) values(3, 'kg', 8.21, 8.653);
+Insert Into storage(product_id, unit, price, quantity) values(12, 'unit', 8.12, 4);
+Insert Into storage(product_id, unit, price, quantity) values(1, 't', 3200, 0.2);
+
+Insert Into discount_card(number, discount_value) values('15fd20181', 1);
+Insert Into discount_card(number, discount_value) values('15fd20182', 3);
+Insert Into discount_card(number, discount_value) values('15fd20183', 4);
+Insert Into discount_card(number, discount_value) values('15fd20184', 2);
+Insert Into discount_card(number, discount_value) values('15fd20185', 5);
+Insert Into discount_card(number, discount_value) values('15fd20186', 1);
+Insert Into discount_card(number, discount_value) values('15fd20187', 3);
+Insert Into discount_card(number, discount_value) values('15fd20188', 6);
+Insert Into discount_card(number, discount_value) values('15fd20189', 7);
+Insert Into discount_card(number, discount_value) values('15fd20190', 8);
+Insert Into discount_card(number, discount_value) values('15fd20191', 5);
+Insert Into discount_card(number, discount_value) values('15fd20192', 1);
+
+Insert Into seller(name, family_name, email, role) values('Sergo', 'Egorov', 'sergo@mail.ru', 'cashier');
+Insert Into seller(name, family_name, email, role) values('Anton', 'Antonov', 'anton@mail.ru', 'manager');
+Insert Into seller(name, family_name, email, role) values('Andrey', 'Ivanov', 'andrey@mail.ru', 'cashier');
+Insert Into seller(name, family_name, email, role) values('Vano', 'Sergeev', 'vano@mail.ru', 'consultant');
+Insert Into seller(name, family_name, email, role) values('Miko', 'Giro', 'miko@mail.ru', 'cashier');
+Insert Into seller(name, family_name, email, role) values('Albert', 'Epshtein', 'albert@mail.ru', 'consultant');
+Insert Into seller(name, family_name, email, role) values('Alik', 'Merov', 'alik@mail.ru', 'cashier');
+Insert Into seller(name, family_name, email, role) values('Mike', 'Pavlov', 'mike@mail.ru', 'manager');
