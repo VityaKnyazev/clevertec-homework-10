@@ -3,20 +3,20 @@ package ru.clevertec.knyazev.service;
 import ru.clevertec.knyazev.dao.CasherDAO;
 
 public class CasherServiceImpl implements CasherService {
-	private CasherDAO casherDAOJPA;
+	private CasherDAO casherDAO;
 
-	public CasherServiceImpl(CasherDAO casherDAOJPA) {
-		this.casherDAOJPA = casherDAOJPA;
+	public CasherServiceImpl(CasherDAO casherDAO) {
+		this.casherDAO = casherDAO;
 	}
 
 	@Override
 	public Long showCasherId() {
-		return casherDAOJPA.getCasherId();
+		return casherDAO.getCasherId();
 	}
 
 	@Override
 	public void increaseCasherId() {
-		casherDAOJPA.increaseCasherId();
+		casherDAO.increaseCasherId();
 	}
 
 }

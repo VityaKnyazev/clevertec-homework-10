@@ -5,9 +5,15 @@ db:
    password: admin
    maxPoolSize: 3
    connectionTimeout: 3000
-hibernate:
-   dialect: org.hibernate.dialect.PostgreSQLDialect
-   showSql: true
+   schema:
+      generationAction: drop-and-create
+      createTablesScript: createClevertecDatabaseTables.sql
+      dropTablesScript: dropClevertecDatabaseTables.sql
+      insertDataScript: fillClevertecTablesWithStartUpData.sql
+   hibernate:
+      provider: org.hibernate.jpa.HibernatePersistenceProvider
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      showSql: true
 cache:
    algorithm: LFU
    size: 5

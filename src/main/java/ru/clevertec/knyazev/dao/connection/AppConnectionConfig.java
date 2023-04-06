@@ -39,19 +39,32 @@ public class AppConnectionConfig {
 		return hikariDataSource;
 	}
 	
+	
 	private EntityManagerFactory entityManagerFactory() {
 		final HashMap<String, Object> properties = new HashMap<String, Object>();
-		properties.put("javax.persistence.jtaDataSource", hikariDataSource());
-		properties.put("hibernate.show.sql", yamlParser.getProperty("hibernate", "showSql"));
-		properties.put("hibernate.dialect", yamlParser.getProperty("hibernate", "dialect"));
+		properties.put("jakarta.persistence.jtaDataSource", hikariDataSource());
+		properties.put("jakarta.persistence.provider", yamlParser.getProperty("db", "hibernate", "provider"));
+		
+		properties.put("jakarta.persistence.schema-generation.database.action", yamlParser.getProperty("db", "schema", "generationAction"));
+		properties.put("jakarta.persistence.schema-generation.scripts.create-target", yamlParser.getProperty("db", "schema", "createTablesScript"));
+		properties.put("jakarta.persistence.schema-generation.scripts.drop-target", yamlParser.getProperty("db", "schema", "dropTablesScript"));
+		properties.put("jakarta.persistence.sql-load-script-source", yamlParser.getProperty("db", "schema", "insertDataScript"));
+		
+		properties.put("hibernate.show.sql", yamlParser.getProperty("db", "hibernate", "showSql"));
+		properties.put("hibernate.dialect", yamlParser.getProperty("db", "hibernate", "dialect"));
 		
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("servlet-app", properties);
 		return entityManagerFactory;
 	}
+	 
 	
 	public static EntityManager getEntityManager() {
 		if (appConnectionConfig == null) {
-			appConnectionConfig = new AppConnectionConfig(DB_PROPERTY_FILE);
+			synchronized (AppConnectionConfig.class) {
+				if (appConnectionConfig == null) {
+					appConnectionConfig = new AppConnectionConfig(DB_PROPERTY_FILE);
+				}
+			}			
 		}
 		
 		return entityManagerFactory.createEntityManager();
