@@ -39,20 +39,24 @@ public class SellerServiceImpl implements SellerService {
 	}
 	
 	@Override
-	public void addSeller(Seller seller) throws ServiceException {
+	public Seller addSeller(Seller seller) throws ServiceException {
 		Optional<Seller> savedSellerWrap = sellerDAO.saveSeller(seller);
 		
 		if (savedSellerWrap.isEmpty()) {
 			throw new ServiceException("Error on adding seller!");
+		} else {
+			return savedSellerWrap.get();
 		}
 	}
 
 	@Override
-	public void changeSeller(Seller seller) throws ServiceException {
+	public Seller changeSeller(Seller seller) throws ServiceException {
 		Optional<Seller> updatedSellerWrap = sellerDAO.updateSeller(seller);
 		
 		if (updatedSellerWrap.isEmpty()) {
 			throw new ServiceException("Error on changing seller!");
+		} else {
+			return updatedSellerWrap.get();
 		}
 	}
 

@@ -16,9 +16,9 @@ public interface SellerService {
 	
 	public List<Seller> showAllSellers(Integer page);
 	
-	public void addSeller(Seller seller) throws ServiceException;
+	public Seller addSeller(Seller seller) throws ServiceException;
 	
-	public void changeSeller(Seller seller) throws ServiceException;
+	public Seller changeSeller(Seller seller) throws ServiceException;
 	
 	public void removeSeller(Seller seller) throws ServiceException;
 }

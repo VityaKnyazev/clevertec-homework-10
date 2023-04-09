@@ -90,17 +90,47 @@ public class SellerController extends HttpServlet {
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		Gson gson = new Gson();
-
-		String body = new String(req.getInputStream().readAllBytes(), Charset.forName("UTF-8"));
 		try {
-			Seller seller = gson.fromJson(body, Seller.class);
+			Seller seller = parseJSONRequestBody(req);
 			sellerValidator.validate(seller);
-			sellerServiceImpl.addSeller(seller);
+			Seller savedSeller = sellerServiceImpl.addSeller(seller);			
+			sendResponse(resp, 200, "UTF-8", "application/json", savedSeller.toString());
 		} catch (JsonSyntaxException | ValidatorException | ServiceException e) {
-			sendResponse(resp, 400, "UTF-8", "text/plain", "Bad Request - 400. Bad Seller JSON.");
+			sendResponse(resp, 400, "UTF-8", "text/plain", "Bad Request - 400." + e.getMessage());
 		}	
 		
+	}	
+	
+	@Override
+	protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		try {
+			Seller seller = parseJSONRequestBody(req);
+			sellerValidator.validate(seller);
+			Seller updatedSeller = sellerServiceImpl.changeSeller(seller);			
+			sendResponse(resp, 200, "UTF-8", "application/json", updatedSeller.toString());
+		} catch (JsonSyntaxException | ValidatorException | ServiceException e) {
+			sendResponse(resp, 400, "UTF-8", "text/plain", "Bad Request - 400." + e.getMessage());
+		}	
+	}
+	
+
+	@Override
+	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		try {
+			Seller seller = parseJSONRequestBody(req);
+			sellerValidator.validate(seller);
+			sellerServiceImpl.removeSeller(seller);			
+			sendResponse(resp, 200, "UTF-8", "text/plain", "Successfully removed");
+		} catch (JsonSyntaxException | ValidatorException | ServiceException e) {
+			sendResponse(resp, 400, "UTF-8", "text/plain", "Bad Request - 400." + e.getMessage());
+		}	
+	}
+
+	private Seller parseJSONRequestBody(HttpServletRequest req) throws IOException, JsonSyntaxException {
+		Gson gson = new Gson();
+		String body = new String(req.getInputStream().readAllBytes(), Charset.forName("UTF-8"));
+		Seller seller = gson.fromJson(body, Seller.class);
+		return seller;		
 	}
 
 	private final void sendResponse(HttpServletResponse resp, int codeStatus, String encoding, String contentType,
