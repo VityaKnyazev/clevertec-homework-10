@@ -30,7 +30,7 @@ import ru.clevertec.knyazev.entity.Shop;
 import ru.clevertec.knyazev.entity.util.Unit;
 
 public class PDFReceiptBuilder extends AbstractReceiptBuilder {
-	private static final String PDF_TEMPLATE_FILE = "receipts/template.pdf";
+	private static final String PDF_TEMPLATE_FILE = "receipts/template/template.pdf";
 	private String PDF_RECEIPT_FILE;
 	
 	private static final DecimalFormat PRICE_DECIMAL_FORMAT = new DecimalFormat("##########.##");
@@ -171,9 +171,10 @@ public class PDFReceiptBuilder extends AbstractReceiptBuilder {
 
 	@Override
 	public String build() {
-		String RES_PATH = "src/main/resources/";
-		PDF_RECEIPT_FILE = RES_PATH + "receipts/" + "receipt-"
+		String RES_PATH = System.getProperty("java.io.tmpdir");
+		PDF_RECEIPT_FILE = RES_PATH + "receipt-"
 				+ LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-YYYY HH-mm-ss-SSS", Locale.ROOT)) + ".pdf";
+		
 		pdfDocument = pdf.createDocument(PDF_TEMPLATE_FILE, PDF_RECEIPT_FILE);
 		
 		pdfDocument.add(receiptTitle)

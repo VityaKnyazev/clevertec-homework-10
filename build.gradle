@@ -15,9 +15,13 @@ ext {
 	hibernateVersion = '6.1.6.Final'
 	jakartaServletApiVersion = '6.0.0'	
 	
+	narayanaJTAJakartaVersion = '5.13.1.Final'
+	
 	snakeYamlVersion = '2.0'
 	
 	itextPDFVersion = '7.2.5'
+	
+	gsonVersion = '2.10.1'
 	
 	lombokVersion = '1.18.26'
 	slf4jApiVersion = '2.0.6'
@@ -50,9 +54,13 @@ dependencies {
 	implementation "org.hibernate.orm:hibernate-core:$hibernateVersion"		
 	compileOnly "jakarta.servlet:jakarta.servlet-api:$jakartaServletApiVersion"
 	
+	implementation "org.jboss.narayana.jta:narayana-jta-jakarta:$narayanaJTAJakartaVersion"
+	
 	implementation "org.yaml:snakeyaml:$snakeYamlVersion"
 	
 	implementation "com.itextpdf:itext7-core:$itextPDFVersion"
+	
+	implementation "com.google.code.gson:gson:$gsonVersion"
 	
 	compileOnly "org.projectlombok:lombok:$lombokVersion"
 	annotationProcessor "org.projectlombok:lombok:$lombokVersion"

@@ -2,113 +2,187 @@ package ru.clevertec.knyazev.dao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
-import ru.clevertec.knyazev.dao.exception.DAOException;
+import ru.clevertec.knyazev.dao.connection.AppConnectionConfig;
 import ru.clevertec.knyazev.entity.Seller;
 
 public class SellerDAOJPA implements SellerDAO {
+	private static final Integer PAGE_EL_LIMIT = 20;
+	
 	private static final Logger logger = LoggerFactory.getLogger(SellerDAOJPA.class);
 	
-	private static final String SAVING_ERROR = "Error on saving seller entity. ";
-	private static final String UPDATING_ERROR = "Error on updating seller entity. ";
-	private static final String DELETING_ERROR = "Error on deleting seller entity. ";
+	private AppConnectionConfig appConnectionConfig;
 	
-	private EntityManager entityManager;
-	
-	public SellerDAOJPA(EntityManager entityManager) {
-		this.entityManager = entityManager;
+	public SellerDAOJPA(AppConnectionConfig appConnectionConfig) {
+		this.appConnectionConfig = appConnectionConfig;
 	}
 	
 	public SellerDAOJPA() {}
 
 	@Override
-	public Seller getSeller(Long id) {
-		Seller seller = null;
+	public Optional<Seller> getSellerById(Long id) {
+		Optional<Seller> sellerWrap = Optional.empty();
 
 		if (id != null && id > 0L) {
-			seller = entityManager.find(Seller.class, id);
+			EntityManager entityManager = appConnectionConfig.getEntityManager();
+
+			try {
+				Seller dbSeller = entityManager.find(Seller.class, id);
+				if (dbSeller != null) {
+					sellerWrap = Optional.of(dbSeller);
+				}
+			} catch (IllegalArgumentException e) {
+				logger.error("Error when getting seller: {}", e.getMessage(), e);
+			} finally {
+				entityManager.close();
+			}
 		}
 
-		return seller;
+		return sellerWrap;
 	}
 
 	@Override
 	public List<Seller> getAllSellers() {
+		List<Seller> seller = new ArrayList<>();
+
+		EntityManager entityManager = appConnectionConfig.getEntityManager();
+		try {
+			seller = entityManager.createQuery("SELECT s FROM Seller s", Seller.class).getResultList();
+		} catch (IllegalArgumentException | PersistenceException e) {
+			logger.error("Error when getting all sellers: {}", e.getMessage(), e);
+		} finally {
+			entityManager.close();
+		}
+
+		return seller;
+	}
+	
+	@Override
+	public List<Seller> getAllSellers(Integer page, Integer elementsOnPage) {
 		List<Seller> sellers = new ArrayList<>();
 
-		sellers = entityManager.createQuery("SELECT s FROM Seller s", Seller.class).getResultList();
+		if ((page == null || page < 1) && (elementsOnPage == null || elementsOnPage < 1)) {
+			return sellers;
+		}
+
+		Integer offsset = (page - 1) * elementsOnPage;
+
+		EntityManager entityManager = appConnectionConfig.getEntityManager();
+		try {
+			sellers = entityManager.createQuery("SELECT s FROM Seller s", Seller.class).setFirstResult(offsset)
+					.setMaxResults(elementsOnPage).getResultList();
+		} catch (IllegalArgumentException | PersistenceException e) {
+			logger.error("Error when getting all sellers on page={}: {}", page, e.getMessage(), e);
+		} finally {
+			entityManager.close();
+		}
+
 		return sellers;
 	}
+	
+	@Override
+	public List<Seller> getAllSellers(Integer page) {
+		return getAllSellers(page, PAGE_EL_LIMIT);
+	}
 
 	@Override
-	public void saveSeller(Seller seller) {
+	public Optional<Seller> saveSeller(Seller seller) {
+		Optional<Seller> sellerWrap = Optional.empty();
 
 		if (seller != null && seller.getId() == null) {
+			EntityManager entityManager = appConnectionConfig.getEntityManager();
+
 			try {
+				entityManager.getTransaction().begin();
 				entityManager.persist(seller);
-			} catch (PersistenceException | IllegalArgumentException e) {
-				logger.error(SAVING_ERROR, e);
-				throw new DAOException(SAVING_ERROR + e.getMessage(), e);
+				entityManager.getTransaction().commit();
+
+				sellerWrap = Optional.of(seller);
+			} catch (IllegalStateException | PersistenceException e) {
+				logger.error("Error when saving seller: {}", e.getMessage(), e);
+			} finally {
+				entityManager.close();
 			}
 		} else {
-			logger.error(SAVING_ERROR + "Giving seller is null or has not null id.");
-			throw new DAOException(SAVING_ERROR);
+			logger.error("Error saving on invalid seller: {}", seller);
 		}
+
+		return sellerWrap;
 
 	}
 
 	@Override
-	public void updateSeller(Seller seller) {
+	public Optional<Seller> updateSeller(Seller seller) {
+		Optional<Seller> sellerWrap = Optional.empty();
 
 		if (seller != null && seller.getId() != null && seller.getId() > 0L) {
+			EntityManager entityManager = appConnectionConfig.getEntityManager();
+
 			try {
-				Seller dbSeller = entityManager.find(Seller.class, seller.getId());
-				if (dbSeller != null) {
-					dbSeller.setName(seller.getName());
-					dbSeller.setFamilyName(seller.getFamilyName());
-					dbSeller.setEmail(seller.getEmail());
-					dbSeller.setRole(seller.getRole());
-					entityManager.flush();
+				entityManager.getTransaction().begin();
+				Seller sellerDB = entityManager.find(Seller.class, seller.getId());
+
+				if (sellerDB != null) {
+					sellerDB.setName(seller.getName());
+					sellerDB.setFamilyName(seller.getFamilyName());
+					sellerDB.setEmail(seller.getEmail());
+					sellerDB.setRole(seller.getRole());
+					
+					entityManager.getTransaction().commit();
+					
+					sellerWrap = Optional.of(seller);
 				} else {
-					throw new DAOException(UPDATING_ERROR + "Seller entity not exists with given id=" + seller.getId());
+					logger.error("Error on updating. Seller not exists on given id={}", seller.getId());
 				}
-			} catch (PersistenceException | IllegalArgumentException e) {
-				logger.error(UPDATING_ERROR, e);
-				throw new DAOException(UPDATING_ERROR + e.getMessage(), e);
+
+			} catch (IllegalStateException | PersistenceException e) {
+				logger.error("Error when updating seller: {}", e.getMessage(), e);
+			} finally {
+				entityManager.close();
 			}
 		} else {
-			logger.error(UPDATING_ERROR + "Giving seller is null or has null or bad id.");
-			throw new DAOException(UPDATING_ERROR);
+			logger.error("Error updating on invalid seller: {}", seller);
 		}
 
+		return sellerWrap;
 	}
 
 	@Override
-	public void deleteSeller(Seller seller) {
+	public Boolean deleteSeller(Seller seller) {
+		Boolean result = false;
 
 		if (seller != null && seller.getId() != null && seller.getId() > 0L) {
+
+			EntityManager entityManager = appConnectionConfig.getEntityManager();
+
 			try {
+				entityManager.getTransaction().begin();
 				Seller dbSeller = entityManager.find(Seller.class, seller.getId());
+
 				if (dbSeller != null) {
 					entityManager.remove(dbSeller);
-					entityManager.flush();
+					entityManager.getTransaction().commit();
+
+					result = true;
 				} else {
-					throw new DAOException(DELETING_ERROR + "Seller entity not exists with given id=" + seller.getId());
+					logger.error("Seller not exists with given id=" + seller.getId());
 				}
 			} catch (PersistenceException | IllegalArgumentException e) {
-				logger.error(DELETING_ERROR, e);
-				throw new DAOException(DELETING_ERROR + e.getMessage(), e);
+				logger.error("Error on deleting seller: {}", e.getMessage(), e);
+			} finally {
+				entityManager.close();
 			}
 		} else {
-			logger.error(DELETING_ERROR + "Giving seller is null or has null or bad id.");
-			throw new DAOException(DELETING_ERROR);
+			logger.error("Given invalid seller={} for deleting", seller);
 		}
 
+		return result;
 	}
 
 }

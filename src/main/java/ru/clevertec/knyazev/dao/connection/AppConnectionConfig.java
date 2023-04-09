@@ -13,7 +13,8 @@ import jakarta.persistence.Persistence;
 
 public class AppConnectionConfig {
 	private YAMLParser yamlParser;
-	private static EntityManagerFactory entityManagerFactory;
+	private EntityManagerFactory entityManagerFactory;
+	private EntityManager entityManager;
 	
 	private static final String DB_PROPERTY_FILE = "application.yaml";
 	
@@ -50,15 +51,15 @@ public class AppConnectionConfig {
 		properties.put("jakarta.persistence.schema-generation.scripts.drop-target", yamlParser.getProperty("db", "schema", "dropTablesScript"));
 		properties.put("jakarta.persistence.sql-load-script-source", yamlParser.getProperty("db", "schema", "insertDataScript"));
 		
+		properties.put("hbm2ddl.auto", yamlParser.getProperty("db", "hibernate", "schema"));
 		properties.put("hibernate.show.sql", yamlParser.getProperty("db", "hibernate", "showSql"));
 		properties.put("hibernate.dialect", yamlParser.getProperty("db", "hibernate", "dialect"));
 		
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("servlet-app", properties);
 		return entityManagerFactory;
 	}
-	 
 	
-	public static EntityManager getEntityManager() {
+	public static AppConnectionConfig getInstance() {
 		if (appConnectionConfig == null) {
 			synchronized (AppConnectionConfig.class) {
 				if (appConnectionConfig == null) {
@@ -67,6 +68,20 @@ public class AppConnectionConfig {
 			}			
 		}
 		
-		return entityManagerFactory.createEntityManager();
+		return appConnectionConfig;
+	}
+	
+	public EntityManager getEntityManager() {
+		if (entityManager == null || !entityManager.isOpen()) {
+			entityManager = entityManagerFactory.createEntityManager();
+		}
+		
+		return entityManager;
+	}
+	
+	public void closeEntityManagerFactory() {
+		if (entityManagerFactory != null) {
+			entityManagerFactory.close();
+		}
 	}
 }

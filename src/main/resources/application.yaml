@@ -11,6 +11,7 @@ db:
       dropTablesScript: dropClevertecDatabaseTables.sql
       insertDataScript: fillClevertecTablesWithStartUpData.sql
    hibernate:
+      schema: none
       provider: org.hibernate.jpa.HibernatePersistenceProvider
       dialect: org.hibernate.dialect.PostgreSQLDialect
       showSql: true

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import ru.clevertec.knyazev.dao.DiscountCardDAO;
@@ -39,9 +40,9 @@ public class DiscountCardService extends AbstractDiscountService<DiscountCardDTO
 			if (!discountCardDAO.isDiscountCardExists(discountCardNumber)) {
 				discountCardDTOIterator.remove();
 			} else {
-				DiscountCard discountCard = discountCardDAO.getDiscountCardByNumber(discountCardNumber);
+				Optional<DiscountCard> discountCard = discountCardDAO.getDiscountCardByNumber(discountCardNumber);
 
-				discountValueInPercent += discountCard.getDiscountValue();
+				discountValueInPercent += discountCard.isPresent() ? discountCard.get().getDiscountValue() : 0;
 			}
 		}
 
