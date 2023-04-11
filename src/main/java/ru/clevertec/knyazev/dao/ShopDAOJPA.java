@@ -72,7 +72,7 @@ public class ShopDAOJPA implements ShopDAO {
 			return shops;
 		}
 
-		Integer offsset = page * elementsOnPage;
+		Integer offsset = (page - 1) * elementsOnPage;
 
 		EntityManager entityManager = appConnectionConfig.getEntityManager();
 		try {
@@ -106,6 +106,7 @@ public class ShopDAOJPA implements ShopDAO {
 
 				shopWrap = Optional.of(shop);
 			} catch (IllegalStateException | PersistenceException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error when saving shop: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();
@@ -137,10 +138,12 @@ public class ShopDAOJPA implements ShopDAO {
 
 					shopdWrap = Optional.of(shopDB);
 				} else {
+					entityManager.getTransaction().rollback();
 					logger.error("Error on updating. Shop not exists on given id={}", shop.getId());
 				}
 
 			} catch (IllegalStateException | PersistenceException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error when updating shop: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();
@@ -170,9 +173,11 @@ public class ShopDAOJPA implements ShopDAO {
 
 					result = true;
 				} else {
+					entityManager.getTransaction().rollback();
 					logger.error("Shop not exists with given id=" + shop.getId());
 				}
 			} catch (PersistenceException | IllegalArgumentException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error on deleting shop: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();

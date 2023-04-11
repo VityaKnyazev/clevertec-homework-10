@@ -28,6 +28,12 @@ public class StorageDAOJPA implements StorageDAO {
 		this.appConnectionConfig = appConnectionConfig;
 	}
 
+	/**
+	 * 
+	 * Method should be calling in transactional context
+	 * entityManager.close();
+	 * 
+	 */
 	@Override
 	public Boolean isStorageExistsByProductId(Long productId) {
 		long quantity = 0;
@@ -43,6 +49,13 @@ public class StorageDAOJPA implements StorageDAO {
 		return quantity > 0;
 	}
 
+	
+	/**
+	 * 
+	 * Method should be calling in transactional context
+	 * entityManager.close();
+	 * 
+	 */
 	@Override
 	public BigDecimal getProductQuantityInStorages(Long productId) {
 		Number dbResultQuantity = 0f;
@@ -62,6 +75,12 @@ public class StorageDAOJPA implements StorageDAO {
 		return productQuantity;
 	}
 
+	/**
+	 * 
+	 * Method should be calling in transactional context
+	 * entityManager.close();
+	 * 
+	 */
 	@Override
 	public List<Storage> getProductGroupInStoragesById(Long productId) {
 		List<Storage> productsGroup = new ArrayList<>();
@@ -96,6 +115,8 @@ public class StorageDAOJPA implements StorageDAO {
 				}
 			} catch (IllegalArgumentException e) {
 				logger.error("Error when getting storage: {}", e.getMessage(), e);
+			} finally {
+				entityManager.close();
 			}
 		}
 
@@ -111,6 +132,8 @@ public class StorageDAOJPA implements StorageDAO {
 			storages = entityManager.createQuery("SELECT s FROM Storage s", Storage.class).getResultList();
 		} catch (IllegalArgumentException | PersistenceException e) {
 			logger.error("Error when getting all storages: {}", e.getMessage(), e);
+		} finally {
+			entityManager.close();
 		}
 
 		return storages;
@@ -132,6 +155,8 @@ public class StorageDAOJPA implements StorageDAO {
 					.setMaxResults(elementsOnPage).getResultList();
 		} catch (IllegalArgumentException | PersistenceException e) {
 			logger.error("Error when getting all storages on page={}: {}", page, e.getMessage(), e);
+		} finally {
+			entityManager.close();
 		}
 
 		return storages;
@@ -167,6 +192,11 @@ public class StorageDAOJPA implements StorageDAO {
 		return storageWrap;
 	}
 
+	/**
+	 * 
+	 * Method should be calling in transactional context
+	 * entityManager.close();
+	 */
 	@Override
 	public Optional<Storage> updateStorage(Storage storage) {
 		Optional<Storage> storageWrap = Optional.empty();
@@ -200,6 +230,11 @@ public class StorageDAOJPA implements StorageDAO {
 		return storageWrap;
 	}
 
+	/**
+	 * 
+	 * Method should be calling in transactional context
+	 * entityManager.close(); 
+	 */
 	@Override
 	public Boolean deleteStorage(Long storageId) {
 		Boolean result = false;

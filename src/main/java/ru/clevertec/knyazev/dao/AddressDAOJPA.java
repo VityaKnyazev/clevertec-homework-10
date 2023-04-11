@@ -106,6 +106,7 @@ public class AddressDAOJPA implements AddressDAO {
 
 				addressWrap = Optional.of(address);
 			} catch (IllegalStateException | PersistenceException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error when saving address: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();
@@ -139,10 +140,12 @@ public class AddressDAOJPA implements AddressDAO {
 
 					addressWrap = Optional.of(address);
 				} else {
+					entityManager.getTransaction().rollback();
 					logger.error("Error on updating. Address not exists on given id={}", address.getId());
 				}
 				
 			} catch (IllegalStateException | PersistenceException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error when updating address: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();
@@ -172,9 +175,11 @@ public class AddressDAOJPA implements AddressDAO {
 					
 					result = true;
 				} else {
+					entityManager.getTransaction().rollback();
 					logger.error("Address not exists with given id=" + address.getId());
 				}
 			} catch (PersistenceException | IllegalArgumentException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error on deleting address: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();

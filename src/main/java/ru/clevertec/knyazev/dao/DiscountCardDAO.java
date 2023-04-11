@@ -24,6 +24,17 @@ public interface DiscountCardDAO {
 	
 	/**
 	 * 
+	 * Get Optional<DiscountCard> discountCard. Will be empty if
+	 * discount card was not found.
+	 * 
+	 * @param Long id discount card id
+	 * @return Optional<DiscountCard> discount card Optional object. 
+	 *         Optional empty - if not found.
+	 */
+	Optional<DiscountCard> getDiscountCardById(Long id);
+	
+	/**
+	 * 
 	 * Get all discount cards objects
 	 * 
 	 * @return List<DiscountCard> list of all saved in database discountCards.

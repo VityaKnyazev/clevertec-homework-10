@@ -41,7 +41,7 @@ import ru.clevertec.knyazev.service.discount.DiscountService;
 import ru.clevertec.knyazev.service.discount.DiscountServiceComposite;
 import ru.clevertec.knyazev.service.exception.ServiceException;
 
-@WebServlet(name = "ReceiptController", urlPatterns = { "/buy" }, loadOnStartup = 1)
+@WebServlet(name = "PurchaseController", urlPatterns = { "/buy" }, loadOnStartup = 1)
 public class PurchaseController extends HttpServlet {
 	private static final long serialVersionUID = -5153841317395813873L;
 	

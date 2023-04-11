@@ -106,6 +106,7 @@ public class ProductDAOJPA implements ProductDAO {
 
 				productdWrap = Optional.of(product);
 			} catch (IllegalStateException | PersistenceException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error when saving product: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();
@@ -136,10 +137,12 @@ public class ProductDAOJPA implements ProductDAO {
 
 					productdWrap = Optional.of(product);
 				} else {
+					entityManager.getTransaction().rollback();
 					logger.error("Error on updating. Product not exists on given id={}", product.getId());
 				}
 
 			} catch (IllegalStateException | PersistenceException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error when updating product: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();
@@ -169,9 +172,11 @@ public class ProductDAOJPA implements ProductDAO {
 
 					result = true;
 				} else {
+					entityManager.getTransaction().rollback();
 					logger.error("Product not exists with given id=" + product.getId());
 				}
 			} catch (PersistenceException | IllegalArgumentException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error on deleting product: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();

@@ -47,6 +47,28 @@ public class DiscountCardDAOJPA implements DiscountCardDAO {
 
 		return discountCard;
 	}
+	
+	@Override
+	public Optional<DiscountCard> getDiscountCardById(Long id) {
+		Optional<DiscountCard> discountCard = Optional.empty();
+
+		if (id != null && id > 0L) {
+			EntityManager entityManager = appConnectionConfig.getEntityManager();
+			try {
+				DiscountCard discountCardDB = (DiscountCard) entityManager
+						.createQuery(
+								"SELECT discountCard FROM DiscountCard discountCard WHERE discountCard.id = ?1")
+						.setParameter(1, id).getSingleResult();
+				discountCard = Optional.of(discountCardDB);
+			} catch (IllegalArgumentException | PersistenceException e) {
+				logger.error("Error when getting discount card: {}", e.getMessage(), e);
+			} finally {
+				entityManager.close();
+			}
+		}
+
+		return discountCard;
+	}
 
 	@Override
 	public List<DiscountCard> getAllDiscountCards() {
@@ -107,6 +129,7 @@ public class DiscountCardDAOJPA implements DiscountCardDAO {
 
 				discountCardWrap = Optional.of(discountCard);
 			} catch (IllegalStateException | PersistenceException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error when saving discount card: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();
@@ -137,10 +160,12 @@ public class DiscountCardDAOJPA implements DiscountCardDAO {
 
 					discountCardWrap = Optional.of(discountCard);
 				} else {
+					entityManager.getTransaction().rollback();
 					logger.error("Error on updating. Discount card not exists on given id={}", discountCard.getId());
 				}
 
 			} catch (IllegalStateException | PersistenceException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error when updating discount card: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();
@@ -170,9 +195,11 @@ public class DiscountCardDAOJPA implements DiscountCardDAO {
 
 					result = true;
 				} else {
+					entityManager.getTransaction().rollback();
 					logger.error("Discount card not exists with given id=" + discountCard.getId());
 				}
 			} catch (PersistenceException | IllegalArgumentException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error on deleting discount card: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();

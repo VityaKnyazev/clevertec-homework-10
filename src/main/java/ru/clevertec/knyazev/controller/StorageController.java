@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -16,33 +15,31 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import ru.clevertec.knyazev.dao.SellerDAOJPA;
+import ru.clevertec.knyazev.dao.StorageDAOJPA;
 import ru.clevertec.knyazev.dao.connection.AppConnectionConfig;
-import ru.clevertec.knyazev.data.exception.ValidatorException;
-import ru.clevertec.knyazev.data.validator.SellerValidator;
-import ru.clevertec.knyazev.entity.Seller;
-import ru.clevertec.knyazev.service.SellerService;
-import ru.clevertec.knyazev.service.SellerServiceImpl;
+import ru.clevertec.knyazev.entity.Storage;
+import ru.clevertec.knyazev.service.StorageService;
+import ru.clevertec.knyazev.service.StorageServiceImpl;
 import ru.clevertec.knyazev.service.exception.ServiceException;
 
-@WebServlet(name = "SellerController", urlPatterns = { "/sellers" })
-public class SellerController extends HttpServlet {
-	private static final long serialVersionUID = 1654584545L;
-
-	private SellerService sellerServiceImpl;
-	private SellerValidator sellerValidator;
+@WebServlet(name = "StorageController", urlPatterns = { "/storages" })
+public class StorageController extends HttpServlet {
+	private static final long serialVersionUID = -12454545421L;
+	
+	private StorageService storageServiceImpl;
+	
+	private Gson gson;
 
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-
-		sellerServiceImpl = new SellerServiceImpl(new SellerDAOJPA(AppConnectionConfig.getInstance()));
-		sellerValidator = new SellerValidator();
+		
+		storageServiceImpl = new StorageServiceImpl(new StorageDAOJPA(AppConnectionConfig.getInstance()));
+		gson = new Gson();
 	}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
 		String idPar = req.getParameter("id");
 		String pagePar = req.getParameter("page");
 		String pageSizePar = req.getParameter("pagesize");
@@ -50,14 +47,14 @@ public class SellerController extends HttpServlet {
 		if (idPar != null) {
 			try {
 				Long id = Long.valueOf(idPar);
-				Optional<Seller> seller = sellerServiceImpl.showSeller(id);
-				String sellerResult = (seller.isEmpty()) ? "{}" : seller.get().toString();
-				sendResponse(resp, 200, "UTF-8", "application/json", sellerResult);
+				Optional<Storage> storage = storageServiceImpl.showStorage(id);
+				String storageResult = (storage.isEmpty()) ? "{}" : gson.toJson(storage.get());
+				sendResponse(resp, 200, "UTF-8", "application/json", storageResult);
 			} catch (NumberFormatException e) {
 				sendResponse(resp, 400, "UTF-8", "text/plain", "Bad Request - 400. Id param should be valid.");
 			}
 		} else {
-			List<Seller> sellers = null;
+			List<Storage> storages = null;
 
 			if (pagePar != null) {
 				try {
@@ -65,9 +62,9 @@ public class SellerController extends HttpServlet {
 
 					if (pageSizePar != null) {
 						Integer pageSize = Integer.valueOf(pageSizePar);
-						sellers = sellerServiceImpl.showAllSellers(page, pageSize);
+						storages = storageServiceImpl.showAllStorages(page, pageSize);
 					} else {
-						sellers = sellerServiceImpl.showAllSellers(page);
+						storages = storageServiceImpl.showAllStorages(page);
 					}
 
 				} catch (NumberFormatException e) {
@@ -76,61 +73,53 @@ public class SellerController extends HttpServlet {
 					return;
 				}
 			} else {
-				sellers = sellerServiceImpl.showAllSellers();
+				storages = storageServiceImpl.showAllStorages();
 			}
 
-			String sellerResult = (sellers.size() == 0) ? "[]"
-					: sellers.stream().map(seller -> seller.toString()).collect(Collectors.joining(",", "[", "]"));
-			sellerResult = sellerResult.replaceFirst(",\\]$", "]");
+			String storagesResult = (storages.size() == 0) ? "[]"
+					: gson.toJson(storages);
 
-			sendResponse(resp, 200, "UTF-8", "application/json", sellerResult);
+			sendResponse(resp, 200, "UTF-8", "application/json", storagesResult);
 		}
-
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try {
-			Seller seller = parseJSONRequestBody(req);
-			sellerValidator.validate(seller);
-			Seller savedSeller = sellerServiceImpl.addSeller(seller);			
-			sendResponse(resp, 200, "UTF-8", "application/json", savedSeller.toString());
-		} catch (JsonSyntaxException | ValidatorException | ServiceException e) {
+			Storage storage = parseJSONRequestBody(req);
+			Storage savedStorage = storageServiceImpl.addStorage(storage);			
+			sendResponse(resp, 200, "UTF-8", "application/json", gson.toJson(savedStorage));
+		} catch (JsonSyntaxException | ServiceException e) {
 			sendResponse(resp, 400, "UTF-8", "text/plain", "Bad Request - 400." + e.getMessage());
-		}	
-		
-	}	
-	
+		}
+	}
+
 	@Override
 	protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try {
-			Seller seller = parseJSONRequestBody(req);
-			sellerValidator.validate(seller);
-			Seller updatedSeller = sellerServiceImpl.changeSeller(seller);			
-			sendResponse(resp, 200, "UTF-8", "application/json", updatedSeller.toString());
-		} catch (JsonSyntaxException | ValidatorException | ServiceException e) {
+			Storage storage = parseJSONRequestBody(req);
+			Storage updatedStorage = storageServiceImpl.changeStorage(storage);			
+			sendResponse(resp, 200, "UTF-8", "application/json", gson.toJson(updatedStorage));
+		} catch (JsonSyntaxException | ServiceException e) {
 			sendResponse(resp, 400, "UTF-8", "text/plain", "Bad Request - 400." + e.getMessage());
 		}	
 	}
-	
 
 	@Override
 	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try {
-			Seller seller = parseJSONRequestBody(req);
-			sellerValidator.validate(seller);
-			sellerServiceImpl.removeSeller(seller);			
-			sendResponse(resp, 200, "UTF-8", "text/plain", "Successfully removed");
-		} catch (JsonSyntaxException | ValidatorException | ServiceException e) {
+			Storage storage = parseJSONRequestBody(req);
+			storageServiceImpl.removeStorage(storage);			
+			sendResponse(resp, 200, "UTF-8", "application/json", "Successfully removed");
+		} catch (JsonSyntaxException | ServiceException e) {
 			sendResponse(resp, 400, "UTF-8", "text/plain", "Bad Request - 400." + e.getMessage());
 		}	
 	}
-
-	private Seller parseJSONRequestBody(HttpServletRequest req) throws IOException, JsonSyntaxException {
-		Gson gson = new Gson();
+	
+	private Storage parseJSONRequestBody(HttpServletRequest req) throws IOException, JsonSyntaxException {
 		String body = new String(req.getInputStream().readAllBytes(), Charset.forName("UTF-8"));
-		Seller seller = gson.fromJson(body, Seller.class);
-		return seller;		
+		Storage storage = gson.fromJson(body, Storage.class);
+		return storage;		
 	}
 
 	private final void sendResponse(HttpServletResponse resp, int codeStatus, String encoding, String contentType,
@@ -141,5 +130,5 @@ public class SellerController extends HttpServlet {
 		PrintWriter writer = resp.getWriter();
 		writer.append(bodyMessage);
 	}
-
+	
 }

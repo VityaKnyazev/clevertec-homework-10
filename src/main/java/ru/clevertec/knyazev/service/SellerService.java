@@ -8,17 +8,17 @@ import ru.clevertec.knyazev.service.exception.ServiceException;
 
 public interface SellerService {
 	
-	public Optional<Seller> showSeller(Long id);
+	Optional<Seller> showSeller(Long id);
 	
-	public List<Seller> showAllSellers();
+	List<Seller> showAllSellers();
 	
-	public List<Seller> showAllSellers(Integer page, Integer pageSize);
+	List<Seller> showAllSellers(Integer page, Integer pageSize);
 	
-	public List<Seller> showAllSellers(Integer page);
+	List<Seller> showAllSellers(Integer page);
 	
-	public Seller addSeller(Seller seller) throws ServiceException;
+	Seller addSeller(Seller seller) throws ServiceException;
 	
-	public Seller changeSeller(Seller seller) throws ServiceException;
+	Seller changeSeller(Seller seller) throws ServiceException;
 	
-	public void removeSeller(Seller seller) throws ServiceException;
+	void removeSeller(Seller seller) throws ServiceException;
 }

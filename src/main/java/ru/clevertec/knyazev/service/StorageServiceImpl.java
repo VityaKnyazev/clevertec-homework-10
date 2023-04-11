@@ -8,10 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import jakarta.persistence.EntityManager;
 import ru.clevertec.knyazev.dao.StorageDAO;
+import ru.clevertec.knyazev.dao.connection.AppConnectionConfig;
 import ru.clevertec.knyazev.entity.Storage;
 import ru.clevertec.knyazev.service.exception.ServiceException;
-import ru.clevertec.knyazev.service.exception.ServiceTransactionException;
 
 public class StorageServiceImpl implements StorageService {
 	private StorageDAO storageDAO;
@@ -42,10 +43,10 @@ public class StorageServiceImpl implements StorageService {
 
 		// Покупаем продукты, удаляя продукты из хранилища с нулевым остатком
 		List<Long> storageIdsForDeleting = new ArrayList<>();
-		
+
 		List<Storage> boughtStorages = new ArrayList<>();
-		
-		for (int  i = 0; i < productGroupInStorages.size(); i++) {
+
+		for (int i = 0; i < productGroupInStorages.size(); i++) {
 			Storage storage = productGroupInStorages.get(i);
 
 			BigDecimal storageQuantity = storage.getQuantity();
@@ -55,14 +56,15 @@ public class StorageServiceImpl implements StorageService {
 				boughtStorages.add(storage);
 				storageIdsForDeleting.add(storage.getId());
 			} else if (quantity.compareTo(storageQuantity) == -1) {
-				Storage storageForBought = new Storage(storage.getId(), storage.getProduct(), storage.getUnit(), storage.getPrice(), quantity);
+				Storage storageForBought = new Storage(storage.getId(), storage.getProduct(), storage.getUnit(),
+						storage.getPrice(), quantity);
 				boughtStorages.add(storageForBought);
 				storage.setQuantity(storageQuantity.subtract(quantity));
-				
+
 				Optional<Storage> updatedStorage = storageDAO.updateStorage(storage);
 				if (updatedStorage.isEmpty()) {
-					throw new ServiceTransactionException("Error on updating storage when buy product");
-				}				
+					throw new ServiceException("Error on updating storage when buy product");
+				}
 				break;
 			} else {
 				boughtStorages.add(storage);
@@ -73,12 +75,12 @@ public class StorageServiceImpl implements StorageService {
 			if ((quantity.compareTo(BigDecimal.ZERO) == -1) || (quantity.compareTo(BigDecimal.ZERO) == 0))
 				break;
 		}
-		
+
 		for (Long storageIdForDeleting : storageIdsForDeleting) {
 			Boolean result = storageDAO.deleteStorage(storageIdForDeleting);
-			
+
 			if (!result) {
-				throw new ServiceTransactionException("Error on deleting storage when buy product");
+				throw new ServiceException("Error on deleting storage when buy product");
 			}
 		}
 
@@ -98,10 +100,78 @@ public class StorageServiceImpl implements StorageService {
 				productPrice = quantity.multiply(price);
 
 				totalPrice = totalPrice.add(productPrice);
-			}			
+			}
 		}
-		
+
 		return totalPrice;
 	}
+
+	@Override
+	public Optional<Storage> showStorage(Long id) {
+		return storageDAO.getStorageById(id);
+	}
+
+	@Override
+	public List<Storage> showAllStorages() {
+		return storageDAO.getAllStorages();
+	}
+
+	@Override
+	public List<Storage> showAllStorages(Integer page, Integer pageSize) {
+		return storageDAO.getAllStorages(page, pageSize);
+	}
+
+	@Override
+	public List<Storage> showAllStorages(Integer page) {
+		return storageDAO.getAllStorages(page);
+	}
+
+	@Override
+	public Storage addStorage(Storage storage) throws ServiceException {
+		Optional<Storage> savedStorageWrap = storageDAO.saveStorage(storage);
+
+		if (savedStorageWrap.isEmpty()) {
+			throw new ServiceException("Error on adding storage!");
+		} else {
+			return savedStorageWrap.get();
+		}
+	}
+
+	@Override
+	public Storage changeStorage(Storage storage) throws ServiceException {
+		EntityManager entityManager = AppConnectionConfig.getInstance().getEntityManager();
+
+		try {
+			entityManager.getTransaction().begin();
+			Optional<Storage> updatedStorageWrap = storageDAO.updateStorage(storage);
+			if (updatedStorageWrap.isPresent()) {
+				entityManager.getTransaction().commit();
+				return updatedStorageWrap.get();
+			} else {
+				entityManager.getTransaction().rollback();
+				throw new ServiceException("Error on adding storage!");
+			}
+		} finally {
+			entityManager.close();
+		}
+	}
 	
+	@Override
+	public void removeStorage(Storage storage) throws ServiceException {
+		EntityManager entityManager = AppConnectionConfig.getInstance().getEntityManager();
+
+		try {
+			entityManager.getTransaction().begin();
+			Boolean result = storageDAO.deleteStorage(storage.getId());
+			if (result) {
+				entityManager.getTransaction().commit();
+			} else {
+				entityManager.getTransaction().rollback();
+				throw new ServiceException("Error on removing storage!");
+			}
+		} finally {
+			entityManager.close();
+		}
+	}
+
 }

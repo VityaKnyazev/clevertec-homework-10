@@ -15,7 +15,6 @@ import ru.clevertec.knyazev.entity.Shop;
 import ru.clevertec.knyazev.entity.Storage;
 import ru.clevertec.knyazev.service.discount.DiscountServiceComposite;
 import ru.clevertec.knyazev.service.exception.ServiceException;
-import ru.clevertec.knyazev.service.exception.ServiceTransactionException;
 
 public class PurchaseServiceImpl implements PurchaseService {
 	private StorageService storageServiceImpl;
@@ -59,9 +58,9 @@ public class PurchaseServiceImpl implements PurchaseService {
 			}
 
 			entityManager.getTransaction().commit();
-		} catch (ServiceTransactionException e) {
+		} catch (ServiceException e) {
 			entityManager.getTransaction().rollback();
-			throw new ServiceException(e.getMessage(), e);
+			throw e;
 		} finally {
 			entityManager.close();
 		}

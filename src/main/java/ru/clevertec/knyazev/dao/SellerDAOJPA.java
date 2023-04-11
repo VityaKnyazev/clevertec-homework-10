@@ -105,6 +105,7 @@ public class SellerDAOJPA implements SellerDAO {
 
 				sellerWrap = Optional.of(seller);
 			} catch (IllegalStateException | PersistenceException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error when saving seller: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();
@@ -138,10 +139,12 @@ public class SellerDAOJPA implements SellerDAO {
 					
 					sellerWrap = Optional.of(seller);
 				} else {
+					entityManager.getTransaction().rollback();
 					logger.error("Error on updating. Seller not exists on given id={}", seller.getId());
 				}
 
 			} catch (IllegalStateException | PersistenceException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error when updating seller: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();
@@ -171,9 +174,11 @@ public class SellerDAOJPA implements SellerDAO {
 
 					result = true;
 				} else {
+					entityManager.getTransaction().rollback();
 					logger.error("Seller not exists with given id=" + seller.getId());
 				}
 			} catch (PersistenceException | IllegalArgumentException e) {
+				entityManager.getTransaction().rollback();
 				logger.error("Error on deleting seller: {}", e.getMessage(), e);
 			} finally {
 				entityManager.close();
