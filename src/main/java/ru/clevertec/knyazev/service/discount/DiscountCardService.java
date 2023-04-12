@@ -7,14 +7,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import ru.clevertec.knyazev.dao.DiscountCardDAO;
 import ru.clevertec.knyazev.dto.DiscountCardDTO;
 import ru.clevertec.knyazev.entity.DiscountCard;
 import ru.clevertec.knyazev.entity.Storage;
+import ru.clevertec.knyazev.service.exception.ServiceException;
 
-public class DiscountCardService extends AbstractDiscountService<DiscountCardDTO, Integer> {
+public class DiscountCardService extends AbstractDiscountService<DiscountCardDTO, Integer> implements CardService {
 
 	private DiscountCardDAO discountCardDAO;
 	private Set<DiscountCardDTO> discountCardsDTO;
@@ -39,9 +41,9 @@ public class DiscountCardService extends AbstractDiscountService<DiscountCardDTO
 			if (!discountCardDAO.isDiscountCardExists(discountCardNumber)) {
 				discountCardDTOIterator.remove();
 			} else {
-				DiscountCard discountCard = discountCardDAO.getDiscountCardByNumber(discountCardNumber);
+				Optional<DiscountCard> discountCard = discountCardDAO.getDiscountCardByNumber(discountCardNumber);
 
-				discountValueInPercent += discountCard.getDiscountValue();
+				discountValueInPercent += discountCard.isPresent() ? discountCard.get().getDiscountValue() : 0;
 			}
 		}
 
@@ -88,6 +90,57 @@ public class DiscountCardService extends AbstractDiscountService<DiscountCardDTO
 		}
 
 		return totalDiscountCardValue;
+	}
+	
+	@Override
+	public Optional<DiscountCard> showDiscountCard(Long id) {
+		return discountCardDAO.getDiscountCardById(id);
+	}
+	
+	@Override
+	public List<DiscountCard> showAllDiscountCards() {
+		return discountCardDAO.getAllDiscountCards();
+	}
+	
+	@Override
+	public List<DiscountCard> showAllDiscountCards(Integer page, Integer pageSize) {
+		return discountCardDAO.getAllDiscountCards(page, pageSize);
+	}
+	
+	@Override
+	public List<DiscountCard> showAllDiscountCards(Integer page) {
+		return discountCardDAO.getAllDiscountCards(page);
+	}
+	
+	@Override
+	public DiscountCard addDiscountCard(DiscountCard discountCard) throws ServiceException {
+		Optional<DiscountCard> savedDiscountCardWrap = discountCardDAO.saveDiscountCard(discountCard);
+		
+		if (savedDiscountCardWrap.isEmpty()) {
+			throw new ServiceException("Error on adding discount card!");
+		} else {
+			return savedDiscountCardWrap.get();
+		}
+	}
+
+	@Override
+	public DiscountCard changeDiscountCard(DiscountCard discountCard) throws ServiceException {
+		Optional<DiscountCard> updatedDiscountCardWrap = discountCardDAO.updateDiscountCard(discountCard);
+		
+		if (updatedDiscountCardWrap.isEmpty()) {
+			throw new ServiceException("Error on changing discount card!");
+		} else {
+			return updatedDiscountCardWrap.get();
+		}
+	}
+
+	@Override
+	public void removeDiscountCard(DiscountCard discountCard) throws ServiceException {
+		Boolean result = discountCardDAO.deleteDiscountCard(discountCard);
+		
+		if (!result) {
+			throw new ServiceException("Error on deleting discount card!");
+		}
 	}
 
 }

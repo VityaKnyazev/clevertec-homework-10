@@ -13,7 +13,8 @@ import jakarta.persistence.Persistence;
 
 public class AppConnectionConfig {
 	private YAMLParser yamlParser;
-	private static EntityManagerFactory entityManagerFactory;
+	private EntityManagerFactory entityManagerFactory;
+	private EntityManager entityManager;
 	
 	private static final String DB_PROPERTY_FILE = "application.yaml";
 	
@@ -39,21 +40,48 @@ public class AppConnectionConfig {
 		return hikariDataSource;
 	}
 	
+	
 	private EntityManagerFactory entityManagerFactory() {
 		final HashMap<String, Object> properties = new HashMap<String, Object>();
-		properties.put("javax.persistence.jtaDataSource", hikariDataSource());
-		properties.put("hibernate.show.sql", yamlParser.getProperty("hibernate", "showSql"));
-		properties.put("hibernate.dialect", yamlParser.getProperty("hibernate", "dialect"));
+		properties.put("jakarta.persistence.jtaDataSource", hikariDataSource());
+		properties.put("jakarta.persistence.provider", yamlParser.getProperty("db", "hibernate", "provider"));
+		
+		properties.put("jakarta.persistence.schema-generation.database.action", yamlParser.getProperty("db", "schema", "generationAction"));
+		properties.put("jakarta.persistence.schema-generation.scripts.create-target", yamlParser.getProperty("db", "schema", "createTablesScript"));
+		properties.put("jakarta.persistence.schema-generation.scripts.drop-target", yamlParser.getProperty("db", "schema", "dropTablesScript"));
+		properties.put("jakarta.persistence.sql-load-script-source", yamlParser.getProperty("db", "schema", "insertDataScript"));
+		
+		properties.put("hbm2ddl.auto", yamlParser.getProperty("db", "hibernate", "schema"));
+		properties.put("hibernate.show.sql", yamlParser.getProperty("db", "hibernate", "showSql"));
+		properties.put("hibernate.dialect", yamlParser.getProperty("db", "hibernate", "dialect"));
 		
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("servlet-app", properties);
 		return entityManagerFactory;
 	}
 	
-	public static EntityManager getEntityManager() {
+	public static AppConnectionConfig getInstance() {
 		if (appConnectionConfig == null) {
-			appConnectionConfig = new AppConnectionConfig(DB_PROPERTY_FILE);
+			synchronized (AppConnectionConfig.class) {
+				if (appConnectionConfig == null) {
+					appConnectionConfig = new AppConnectionConfig(DB_PROPERTY_FILE);
+				}
+			}			
 		}
 		
-		return entityManagerFactory.createEntityManager();
+		return appConnectionConfig;
+	}
+	
+	public EntityManager getEntityManager() {
+		if (entityManager == null || !entityManager.isOpen()) {
+			entityManager = entityManagerFactory.createEntityManager();
+		}
+		
+		return entityManager;
+	}
+	
+	public void closeEntityManagerFactory() {
+		if (entityManagerFactory != null) {
+			entityManagerFactory.close();
+		}
 	}
 }

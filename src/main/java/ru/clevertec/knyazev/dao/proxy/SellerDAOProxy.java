@@ -1,10 +1,10 @@
 package ru.clevertec.knyazev.dao.proxy;
 
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 import ru.clevertec.knyazev.cache.SimpleCacheFactory;
 import ru.clevertec.knyazev.dao.SellerDAO;
-import ru.clevertec.knyazev.dao.exception.DAOException;
 import ru.clevertec.knyazev.entity.Seller;
 
 public class SellerDAOProxy extends AbstractDAOProxy<Long, Seller> {
@@ -20,64 +20,70 @@ public class SellerDAOProxy extends AbstractDAOProxy<Long, Seller> {
 		String methodName = method.getName();
 			
 			return switch (methodName) {
-			case "getSeller" -> whenGetSeller(args);
+			case "getSellerById" -> whenGetSeller(args);
 			case "getAllSellers" -> method.invoke(sellerDAO, args);
-			case "saveSeller" -> {
-				whenSaveSeller(args);
-				yield null;
-			}
-			case "updateSeller" -> {
-				whenUpdateSeller(args);
-				yield null;
-			}
-			case "deleteSeller" -> {
-				whenDeleteSeller(args);
-				yield null;
-			}
+			case "saveSeller" -> whenSaveSeller(args);
+			case "updateSeller" -> whenUpdateSeller(args);
+			case "deleteSeller" -> whenDeleteSeller(args);
 			default -> throw new IllegalArgumentException("Unexpected method name: " + methodName);
 			};
 
 	}
 
-	private Seller whenGetSeller(Object[] args) {
-		Seller seller = null;
+	private Optional<Seller> whenGetSeller(Object[] args) {
+		Optional<Seller> seller = null;
 		Long id = (Long) args[0];
 
 		Seller cacheSeller = cache.get(id);
 
 		if (cacheSeller != null) {
-			seller = cacheSeller;
+			seller = Optional.of(cacheSeller);
 		} else {
-			seller = sellerDAO.getSeller(id);
-			if (seller != null) {
-				cache.put(id, seller);
+			seller = sellerDAO.getSellerById(id);
+			if (seller.isPresent()) {
+				cache.put(id, seller.get());
 			}
 		}
 
 		return seller;
 	}
 
-	private void whenSaveSeller(Object[] args) throws DAOException {
+	private Optional<Seller> whenSaveSeller(Object[] args) {
 		Seller savingSeller = (Seller) args[0];
-		Long savingSellerId = savingSeller.getId();
 
-		sellerDAO.saveSeller(savingSeller);
-		cache.put(savingSellerId, savingSeller);
+		Optional<Seller> savedSellerWrap = sellerDAO.saveSeller(savingSeller);
+		
+		if (savedSellerWrap.isPresent()) {
+			Seller savedSeller = savedSellerWrap.get();
+			cache.put(savedSeller.getId(), savedSeller);
+		}
+		
+		return savedSellerWrap;
 	}
 
-	private void whenUpdateSeller(Object[] args) throws DAOException {
+	private Optional<Seller> whenUpdateSeller(Object[] args)  {
 		Seller updatingSeller = (Seller) args[0];
-		Long updatingSellererId = updatingSeller.getId();
 
-		sellerDAO.updateSeller(updatingSeller);
-		cache.put(updatingSellererId, updatingSeller);
+		Optional<Seller> updatedSellerWrap =  sellerDAO.updateSeller(updatingSeller);
+
+		if (updatedSellerWrap.isPresent()) {
+			Seller updatedSeller = updatedSellerWrap.get();
+			cache.put(updatedSeller.getId(), updatedSeller);
+		}
+		
+		return updatedSellerWrap;
 	}
 
-	private void whenDeleteSeller(Object[] args) throws DAOException {
+	private Boolean whenDeleteSeller(Object[] args) {
 		Seller deletingSeller = (Seller) args[0];
-		Long deletingSellerId = deletingSeller.getId();
 
-		sellerDAO.deleteSeller(deletingSeller);
-		cache.remove(deletingSellerId);
+		Boolean result = sellerDAO.deleteSeller(deletingSeller);
+		
+		if (result) {
+			Long deletingSellerId = deletingSeller.getId();
+			cache.remove(deletingSellerId);
+		}
+		
+		return result;
 	}
 }

@@ -20,4 +20,12 @@ public class YAMLParser {
 		String propertyValue = String.valueOf((Object) objectProperties.get(propertyName));
 		return propertyValue;
 	}
+	
+	@SuppressWarnings("unchecked")
+	public String getProperty(String propertyObject, String propertySubObject, String propertyName) {
+		Map<Object, Object> objectProperties = (Map<Object, Object>) yamlProperties.get(propertyObject);
+		Map<Object, Object> subObjectProperties = (Map<Object, Object>) objectProperties.get(propertySubObject);
+		String propertyValue = String.valueOf((Object) subObjectProperties.get(propertyName));
+		return propertyValue;
+	}
 }

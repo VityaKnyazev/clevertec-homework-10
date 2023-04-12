@@ -2,6 +2,7 @@ package ru.clevertec.knyazev.dao;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import ru.clevertec.knyazev.entity.Storage;
 
@@ -30,14 +31,65 @@ public interface StorageDAO {
 
 	/**
 	 * 
-	 * @param storage storage for update
-	 * @return Storage with bought product, bought product quantity and price
+	 * Get Optional<Storage> from database on giving id.
+	 * 
+	 * @param Long id for searching storage in database.
+	 * @return Optional<Storage> storage if storage not exists in database - Optional empty.
 	 */
-	Storage updateStorage(Storage storage);
+	Optional<Storage> getStorageById(Long id);
 	
 	/**
 	 * 
-	 * @param storageId storage id for deleting
+	 * Get all storages from database
+	 * 
+	 * @return List<Storage> all storages from database or empty list.
 	 */
-	void deleteStorage(Long storageId);
+	List<Storage> getAllStorages();
+	
+	/**
+	 * 
+	 * Get all storages from database on given Integer page of given quantity of elements.
+	 * 
+	 * @param Integer page number.
+	 * @param Integer elementsOnPage quantity of elements on page.
+	 * @return List<Storage> storages on given Integer page of given Integer quantity of elements
+	 *         from database or empty list.
+	 */
+	List<Storage> getAllStorages(Integer page, Integer elementsOnPage);
+	
+	/**
+	 * 
+	 * Get all storages from database on given Integer page.
+	 * 
+	 * @param Integer page number.
+	 * @return List<Storage> storages on given Integer page from database or empty list.
+	 */
+	List<Storage> getAllStorages(Integer page);
+	
+	/**
+	 * 
+	 * Save storage to database
+	 * 
+	 * @param Storage storage for saving
+	 * @return Optional<Storage> if was success on saving - optional storage, otherwise - optional empty.
+	 */
+	Optional<Storage> saveStorage(Storage storage);
+		
+	/**
+	 * 
+	 * Update storage in database
+	 * 
+	 * @param Storage storage for updating
+	 * @return Optional<Storage> if was success on updating - optional storage, otherwise - optional empty
+	 */
+	Optional<Storage> updateStorage(Storage storage);
+		
+	/**
+	 * 
+	 * Delete storage in database
+	 * 
+	 * @param Long storage id for deleting
+	 * @return Boolean true on success deleting, otherwise - false.
+	 */
+	Boolean deleteStorage(Long storageId);
 }

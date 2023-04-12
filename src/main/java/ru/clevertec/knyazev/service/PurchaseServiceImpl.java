@@ -6,7 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.transaction.Transactional;
+import jakarta.persistence.EntityManager;
+import ru.clevertec.knyazev.dao.connection.AppConnectionConfig;
 import ru.clevertec.knyazev.dto.ProductDTO;
 import ru.clevertec.knyazev.dto.PurchaseDTO;
 import ru.clevertec.knyazev.dto.receipt.AbstractReceiptBuilder;
@@ -21,20 +22,19 @@ public class PurchaseServiceImpl implements PurchaseService {
 	private ShopService shopServiceImpl;
 	private AbstractReceiptBuilder receiptBuilder;
 
-
-	public PurchaseServiceImpl(StorageService storageServiceImpl, CasherService casherServiceImpl, ShopService shopServiceImpl) {
+	public PurchaseServiceImpl(StorageService storageServiceImpl, CasherService casherServiceImpl,
+			ShopService shopServiceImpl) {
 		this.storageServiceImpl = storageServiceImpl;
 		this.casherServiceImpl = casherServiceImpl;
 		this.shopServiceImpl = shopServiceImpl;
 		receiptBuilder = AbstractReceiptBuilder.createDefaultReceiptBuilder();
 	}
-	
+
 	@Override
 	public void implementReceiptBuilder(AbstractReceiptBuilder receiptBuilder) {
 		this.receiptBuilder = receiptBuilder;
 	}
 
-	@Transactional
 	@Override
 	public String buyPurchases(Map<ProductDTO, BigDecimal> productsDTO) throws ServiceException {
 		if (productsDTO == null || productsDTO.isEmpty())
@@ -42,14 +42,27 @@ public class PurchaseServiceImpl implements PurchaseService {
 		// Получаем купленные товары.
 		Map<Long, List<Storage>> boughtProductsInStorages = new HashMap<>();
 
-		for (Map.Entry<ProductDTO, BigDecimal> productsDTOQuantities : productsDTO.entrySet()) {
-			ProductDTO productDTO = productsDTOQuantities.getKey();
-			BigDecimal quantity = productsDTOQuantities.getValue();
+		EntityManager entityManager = AppConnectionConfig.getInstance().getEntityManager();
+		try {
+			entityManager.getTransaction().begin();
 
-			List<Storage> groupProductInStorages = storageServiceImpl.buyProductFromStorages(productDTO.getId(), quantity);
-			if (!groupProductInStorages.isEmpty()) {
-				boughtProductsInStorages.put(productDTO.getId(), groupProductInStorages);
+			for (Map.Entry<ProductDTO, BigDecimal> productsDTOQuantities : productsDTO.entrySet()) {
+				ProductDTO productDTO = productsDTOQuantities.getKey();
+				BigDecimal quantity = productsDTOQuantities.getValue();
+
+				List<Storage> groupProductInStorages = storageServiceImpl.buyProductFromStorages(productDTO.getId(),
+						quantity);
+				if (!groupProductInStorages.isEmpty()) {
+					boughtProductsInStorages.put(productDTO.getId(), groupProductInStorages);
+				}
 			}
+
+			entityManager.getTransaction().commit();
+		} catch (ServiceException e) {
+			entityManager.getTransaction().rollback();
+			throw e;
+		} finally {
+			entityManager.close();
 		}
 
 		if (boughtProductsInStorages.isEmpty())
@@ -67,14 +80,15 @@ public class PurchaseServiceImpl implements PurchaseService {
 		List<PurchaseDTO> purchases = new ru.clevertec.knyazev.dto.converter.PurchaseConverter()
 				.convertToDTO(boughtProductsInStorages);
 
-		Shop shop = shopServiceImpl.showShop();
+		Long shopId = 1L;
+		Shop shop = shopServiceImpl.showShop(shopId).get();
 
 		Long casherId = casherServiceImpl.showCasherId();
 		casherServiceImpl.increaseCasherId();
 
 		BigDecimal totalDiscountPrice = totalPrice.subtract(totalProductGroupsDiscount).subtract(totalCardsDiscount)
 				.setScale(2, RoundingMode.HALF_UP);
-		
+
 		return receiptBuilder.setCasherIdWithDateTime(casherId).setShop(shop).setPurchases(purchases)
 				.setTotalPrice(totalPrice).setProductGroupsDiscountValue(totalProductGroupsDiscount)
 				.setDiscountCardsValue(totalCardsDiscount).setTotalDiscountPrice(totalDiscountPrice).build();
