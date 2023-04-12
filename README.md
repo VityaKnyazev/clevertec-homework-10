@@ -43,7 +43,12 @@ ru.clevertec.knyazev.controller для обработки CRUD-запросов 
 <li>
 Для метода getAll* реализована пагинация с возможностью определить количество элементов на странице.
 В случае, если pagesize не передан, то по умолчанию выводится 20 элементов на странице.
-Пример: GET /storages или GET /storages?page=1&pagesize=3 или GET /storages?page=1 или GET /storages?id=5
+Пример: GET /servlet/storages или GET /servlet/storages?page=1&pagesize=3 или GET /servlet/storages?page=1 или GET /servlet/storages?id=5
+</li>
+
+<li>
+Реализован метод GET, который генерирует чек (pdf возвращается или генерируется ошибка).
+Пример: /servlet/buy?purchase=3-1&purchase=1-1&purchase=5-1
 </li>
 
 <li>
