@@ -1,8 +1,5 @@
 package ru.clevertec.knyazev.dao.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,13 +10,19 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.KeyHolder;
+import ru.clevertec.knyazev.config.PagingProperties;
 import ru.clevertec.knyazev.dao.exception.DAOException;
 import ru.clevertec.knyazev.entity.Person;
+import ru.clevertec.knyazev.pagination.Paging;
+import ru.clevertec.knyazev.pagination.impl.PagingImpl;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @ExtendWith(MockitoExtension.class)
 public class PersonDAOImplTest {
@@ -108,6 +111,67 @@ public class PersonDAOImplTest {
                 });
 
         List<Person> actualPersons = personDAOImpl.findAll();
+
+        assertThat(actualPersons).isEmpty();
+    }
+
+    @Test
+    public void checkFindAllWithPagingShouldReturnPersons() {
+
+        Person expectedPerson1 = Person.builder()
+                .id(new UUID(24L, 18L))
+                .name("Misha")
+                .surname("Ivanov")
+                .email("misha@mail.ru")
+                .citizenship("Russia")
+                .age(34)
+                .build();
+        Person expectedPerson2 = Person.builder()
+                .id(new UUID(14L, 128L))
+                .name("Masha")
+                .surname("Ivanova")
+                .email("masha@mail.ru")
+                .citizenship("France")
+                .age(25)
+                .build();
+
+        List<Person> expectedPersons = List.of(expectedPerson1, expectedPerson2);
+
+        Mockito.when(jdbcTemplateMock.query(Mockito.anyString(),
+                        Mockito.any(RowMapper.class),
+                        Mockito.anyInt(),
+                        Mockito.anyInt()))
+                .thenReturn(expectedPersons);
+
+        Paging pagingInput = new PagingImpl(1,
+                2,
+                PagingProperties.builder()
+                .defaultPage(1)
+                .defaultPageSize(2)
+                .build());
+        List<Person> actualPersons = personDAOImpl.findAll(pagingInput);
+
+        assertThat(actualPersons).isNotEmpty()
+                .isNotNull()
+                .containsExactly(expectedPerson1, expectedPerson2);    }
+
+    @Test
+    public void checkFindAllWithPagingShouldReturnEmptyList() {
+
+        Mockito.when(jdbcTemplateMock.query(Mockito.anyString(),
+                        Mockito.any(RowMapper.class),
+                        Mockito.anyInt(),
+                        Mockito.anyInt()))
+                .thenThrow(new DataAccessException("empty") {
+                });
+
+        Paging pagingInput = new PagingImpl(1,
+                2,
+                PagingProperties.builder()
+                        .defaultPage(1)
+                        .defaultPageSize(2)
+                        .build());
+        List<Person> actualPersons = personDAOImpl.findAll(pagingInput);
 
         assertThat(actualPersons).isEmpty();
     }
