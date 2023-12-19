@@ -8,7 +8,6 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Repository;
 import ru.clevertec.knyazev.dao.PersonDAO;
 import ru.clevertec.knyazev.dao.exception.DAOException;
 import ru.clevertec.knyazev.entity.Person;
@@ -20,7 +19,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
-@Repository
 @AllArgsConstructor(onConstructor_ = {@Autowired})
 public class PersonDAOImpl implements PersonDAO {
     private static final String FIND_BY_ID = "SELECT id, name, surname, email, citizenship, age FROM person WHERE id=?";
