@@ -1,0 +1,5 @@
+pdf:
+   templatePath: pdf/tmpl/test-template.pdf
+   resultPath: src/main/resources/pdf
+   documentFontPath: fonts/times.ttf
+   documentFontEncoding: CP1251

@@ -1,0 +1,18 @@
+#datasource config
+datasource:
+   driverClassName: org.postgresql.Driver
+   jdbcUrl: jdbc:postgresql://localhost:5432/government?useUnicode=true&characterEncoding=UTF-8
+   username: admin
+   password: admin
+   maxPoolSize: 3
+   connectionTimeout: 3000
+#cache config
+cache:
+   algorithm: LFU
+   size: 5
+#pdf config
+pdf:
+   templatePath: pdf/tmpl/template.pdf
+   resultPath: src/main/resources/pdf
+   documentFontPath: fonts/times.ttf
+   documentFontEncoding: CP1251
