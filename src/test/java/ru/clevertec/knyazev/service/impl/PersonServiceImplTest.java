@@ -11,11 +11,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.clevertec.knyazev.config.PagingProperties;
 import ru.clevertec.knyazev.dao.PersonDAO;
 import ru.clevertec.knyazev.data.PersonDTO;
 import ru.clevertec.knyazev.entity.Person;
 import ru.clevertec.knyazev.mapper.PersonMapper;
 import ru.clevertec.knyazev.mapper.PersonMapperImpl;
+import ru.clevertec.knyazev.pagination.Paging;
+import ru.clevertec.knyazev.pagination.impl.PagingImpl;
 import ru.clevertec.knyazev.service.exception.ServiceException;
 
 import java.util.Collections;
@@ -137,6 +140,62 @@ public class PersonServiceImplTest {
                 .thenReturn(expectedPersons);
 
         List<PersonDTO> actualPersonDTOs = personServiceImpl.getAll();
+
+        assertThat(actualPersonDTOs)
+                .isEmpty();
+    }
+
+    @Test
+    public void checkGetAllWithPagingShouldReturnPersonDTOs() {
+        List<Person> expectedPersons = List.of(
+                Person.builder()
+                        .id(UUID.randomUUID())
+                        .name("Vasya")
+                        .surname("Alexandrov")
+                        .email("vasya@gmail.com")
+                        .citizenship("Russia")
+                        .age(28)
+                        .build(),
+                Person.builder()
+                        .name("Kolya")
+                        .surname("Petrov")
+                        .email("kolya@gmail.com")
+                        .citizenship("Belarus")
+                        .age(22)
+                        .build()
+        );
+
+
+        Mockito.when(personDAOImplMock.findAll(Mockito.any(Paging.class)))
+                .thenReturn(expectedPersons);
+
+        Paging inputPaging = new PagingImpl(1,
+                2,
+                PagingProperties.builder()
+                        .defaultPage(1)
+                        .defaultPageSize(5)
+                        .build());
+        List<PersonDTO> actualPersonDTOs = personServiceImpl.getAll(inputPaging);
+
+        assertThat(actualPersonDTOs)
+                .isNotEmpty()
+                .hasSize(2);
+    }
+
+    @Test
+    public void checkGetAllWithPagingShouldReturnEmptyList() {
+        List<Person> expectedPersons = Collections.emptyList();
+
+        Mockito.when(personDAOImplMock.findAll(Mockito.any(Paging.class)))
+                .thenReturn(expectedPersons);
+
+        Paging inputPaging = new PagingImpl(1,
+                2,
+                PagingProperties.builder()
+                        .defaultPage(1)
+                        .defaultPageSize(5)
+                        .build());
+        List<PersonDTO> actualPersonDTOs = personServiceImpl.getAll(inputPaging);
 
         assertThat(actualPersonDTOs)
                 .isEmpty();

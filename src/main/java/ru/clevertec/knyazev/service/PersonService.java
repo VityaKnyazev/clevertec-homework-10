@@ -1,6 +1,7 @@
 package ru.clevertec.knyazev.service;
 
 import ru.clevertec.knyazev.data.PersonDTO;
+import ru.clevertec.knyazev.pagination.Paging;
 import ru.clevertec.knyazev.service.exception.ServiceException;
 
 import java.util.List;
@@ -27,6 +28,15 @@ public interface PersonService {
      * @return all person DTOs or empty list
      */
     List<PersonDTO> getAll();
+
+    /**
+     *
+     * Get all Person data transfer objects using paging query
+     *
+     * @param paging query object
+     * @return all person DTOs by given paging object or empty list
+     */
+    List<PersonDTO> getAll(Paging paging);
 
     /**
      * Validate and map person DTO and call to save person to datasource

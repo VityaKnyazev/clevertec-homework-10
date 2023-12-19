@@ -8,6 +8,7 @@ import ru.clevertec.knyazev.dao.proxy.PersonDaoProxy;
 import ru.clevertec.knyazev.data.PersonDTO;
 import ru.clevertec.knyazev.entity.Person;
 import ru.clevertec.knyazev.mapper.PersonMapper;
+import ru.clevertec.knyazev.pagination.Paging;
 import ru.clevertec.knyazev.service.PersonService;
 import ru.clevertec.knyazev.service.exception.ServiceException;
 
@@ -58,6 +59,14 @@ public class PersonServiceImpl implements PersonService {
     @Override
     public List<PersonDTO> getAll() {
         return personMapperImpl.toPersonDTOs(personDAOImpl.findAll());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<PersonDTO> getAll(Paging paging) {
+        return personMapperImpl.toPersonDTOs(personDAOImpl.findAll(paging));
     }
 
     /**
