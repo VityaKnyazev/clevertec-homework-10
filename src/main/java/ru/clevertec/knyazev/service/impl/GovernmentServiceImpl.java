@@ -2,8 +2,6 @@ package ru.clevertec.knyazev.service.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import ru.clevertec.knyazev.dao.ServiceDAO;
 import ru.clevertec.knyazev.data.ServiceDTO;
 import ru.clevertec.knyazev.mapper.ServiceMapper;
@@ -14,9 +12,8 @@ import ru.clevertec.knyazev.service.exception.ServiceException;
 import java.util.List;
 import java.util.UUID;
 
-@Service
 @NoArgsConstructor
-@AllArgsConstructor(onConstructor_ = { @Autowired })
+@AllArgsConstructor
 public class GovernmentServiceImpl implements GovernmentService {
 
     private static final String PERSON_SERVICE_ERROR = "No services for person id=%s where found";

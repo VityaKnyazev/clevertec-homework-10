@@ -2,7 +2,6 @@ package ru.clevertec.knyazev.dao.proxy;
 
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import ru.clevertec.knyazev.cache.Cache;
 import ru.clevertec.knyazev.dao.PersonDAO;
 import ru.clevertec.knyazev.dao.exception.DAOException;
@@ -16,8 +15,7 @@ import java.util.UUID;
 /**
  * Represents proxy for PerssonDAO class for organization caching Person
  */
-@Component
-@AllArgsConstructor(onConstructor_ = {@Autowired})
+@AllArgsConstructor
 public class PersonDaoProxy implements InvocationHandler {
     private PersonDAO personDAOImpl;
     private Cache<UUID, Person> personCache;

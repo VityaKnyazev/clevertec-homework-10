@@ -6,6 +6,10 @@ datasource:
    password: admin
    maxPoolSize: 3
    connectionTimeout: 3000
+#paging config
+paging:
+   defaultPage: 1
+   defaultPageSize: 20
 #cache config
 cache:
    algorithm: LFU
