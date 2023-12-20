@@ -11,13 +11,14 @@ import ru.clevertec.knyazev.cache.AbstractCacheFactory;
 import ru.clevertec.knyazev.cache.Cache;
 import ru.clevertec.knyazev.cache.impl.DefaultCacheFactory;
 import ru.clevertec.knyazev.data.ServiceDTO;
+import ru.clevertec.knyazev.datasource.managing.DatabaseManager;
+import ru.clevertec.knyazev.datasource.managing.impl.LiquibaseDatabaseManagerImpl;
 import ru.clevertec.knyazev.entity.Person;
 import ru.clevertec.knyazev.pdf.PDFManager;
 import ru.clevertec.knyazev.pdf.impl.ServiceCheckPDFManagerImpl;
 import ru.clevertec.knyazev.util.YAMLParser;
 
 import javax.sql.DataSource;
-import java.io.File;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,6 +41,19 @@ public class AppConfig {
                                                                       "maxPoolSize")))
                 .connectionTimeout(Long.parseLong(yamlParser.getProperty("datasource",
                                                                           "connectionTimeout")))
+                .build();
+    }
+
+    DataSourceManagementProperties dataSourceManagementProperties(YAMLParser yamlParser) {
+        return DataSourceManagementProperties.builder()
+                .initOnStartup(Boolean.parseBoolean(yamlParser.getProperty("datasourceManagement",
+                        "initOnStartup")))
+                .build();
+    }
+
+    LiquibaseProperties liquibaseProperties(YAMLParser yamlParser) {
+        return LiquibaseProperties.builder()
+                .changelogFile(yamlParser.getProperty("liquibase", "changelogFile"))
                 .build();
     }
 
@@ -108,6 +122,15 @@ public class AppConfig {
         hikariConfig.setConnectionTimeout(dataSourceProperties.connectionTimeout());
 
         return new HikariDataSource(hikariConfig);
+    }
+
+    DatabaseManager liquibaseDatabaseManager(DataSourceProperties dataSourceProperties,
+                                             LiquibaseProperties liquibaseProperties) {
+        return new LiquibaseDatabaseManagerImpl(dataSourceProperties.driverClassName(),
+                dataSourceProperties.jdbcUrl(),
+                dataSourceProperties.username(),
+                dataSourceProperties.password(),
+                liquibaseProperties.changelogFile());
     }
 
     JdbcTemplate jdbcTemplate(DataSource hikariDataSource) {
