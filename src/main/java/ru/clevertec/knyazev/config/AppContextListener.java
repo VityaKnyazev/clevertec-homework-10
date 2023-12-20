@@ -12,9 +12,9 @@ import ru.clevertec.knyazev.dao.ServiceDAO;
 import ru.clevertec.knyazev.dao.impl.PersonDAOImpl;
 import ru.clevertec.knyazev.dao.impl.ServiceDAOImpl;
 import ru.clevertec.knyazev.dao.proxy.PersonDaoProxy;
+import ru.clevertec.knyazev.datasource.managing.DatabaseManager;
 import ru.clevertec.knyazev.mapper.PersonMapperImpl;
 import ru.clevertec.knyazev.mapper.ServiceMapperImpl;
-import ru.clevertec.knyazev.pdf.impl.ServiceCheckPDFManagerImpl;
 import ru.clevertec.knyazev.service.GovernmentService;
 import ru.clevertec.knyazev.service.PersonService;
 import ru.clevertec.knyazev.service.impl.GovernmentServiceImpl;
@@ -43,10 +43,18 @@ public class AppContextListener implements ServletContextListener {
         YAMLParser yamlParser = appConfig.yamlParser();
 
         DataSourceProperties dataSourceProperties = appConfig.dataSourceProperties(yamlParser);
+        DataSourceManagementProperties dataSourceManagementProperties =
+                appConfig.dataSourceManagementProperties(yamlParser);
+        LiquibaseProperties liquibaseProperties = appConfig.liquibaseProperties(yamlParser);
         PagingProperties pagingProperties = appConfig.pagingProperties(yamlParser);
         CacheProperties cacheProperties = appConfig.cacheProperties(yamlParser);
         PDFProperties serverPDFProperties = appConfig.serverPDFProperties(yamlParser);
 
+        if (dataSourceManagementProperties.initOnStartup()) {
+            DatabaseManager liquibaseDatabaseManager = appConfig.liquibaseDatabaseManager(dataSourceProperties,
+                    liquibaseProperties);
+            liquibaseDatabaseManager.loadData();
+        }
 
         JdbcTemplate jdbcTemplate = appConfig.jdbcTemplate(
                 appConfig.hikariDataSource(dataSourceProperties));
@@ -66,10 +74,7 @@ public class AppContextListener implements ServletContextListener {
                 appConfig.validatorFactory());
         GovernmentService governmentServiceImpl = new GovernmentServiceImpl(serviceDAOImpl,
                 new ServiceMapperImpl(),
-                new ServiceCheckPDFManagerImpl(serverPDFProperties.pdfTemplatePath(),
-                        serverPDFProperties.pdfPath(),
-                        serverPDFProperties.pdfFontPath(),
-                        serverPDFProperties.pdfFontEncoding()));
+                appConfig.serviceCheckPDFManagerImpl(serverPDFProperties));
 
         servletContext.setAttribute(PERSON_SERVICE_IMPL, personServiceImpl);
         servletContext.setAttribute(GOVERNMENT_SERVICE_IMPL, governmentServiceImpl);
