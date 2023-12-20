@@ -1,5 +1,6 @@
 package ru.clevertec.knyazev.config;
 
+import com.google.gson.Gson;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.validation.Validation;
@@ -16,6 +17,7 @@ import ru.clevertec.knyazev.pdf.impl.ServiceCheckPDFManagerImpl;
 import ru.clevertec.knyazev.util.YAMLParser;
 
 import javax.sql.DataSource;
+import java.io.File;
 import java.util.List;
 import java.util.UUID;
 
@@ -65,6 +67,15 @@ public class AppConfig {
                 .build();
     }
 
+    PDFProperties serverPDFProperties(YAMLParser yamlParser) {
+        return PDFProperties.builder()
+                .pdfTemplatePath(yamlParser.getProperty("pdf", "templatePath"))
+                .pdfPath(System.getProperty("java.io.tmpdir"))
+                .pdfFontPath(yamlParser.getProperty("pdf", "documentFontPath"))
+                .pdfFontEncoding(yamlParser.getProperty("pdf", "documentFontEncoding"))
+                .build();
+    }
+
     AbstractCacheFactory defaultCacheFactory(CacheProperties cacheProperties) {
         return new DefaultCacheFactory(cacheProperties.algorithm(), cacheProperties.size());
     }
@@ -103,4 +114,7 @@ public class AppConfig {
         return new JdbcTemplate(hikariDataSource);
     }
 
+    Gson gson() {
+        return new Gson();
+    }
 }

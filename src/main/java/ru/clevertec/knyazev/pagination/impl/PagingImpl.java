@@ -5,8 +5,8 @@ import ru.clevertec.knyazev.pagination.Paging;
 
 public class PagingImpl implements Paging {
 
-    private Integer page;
-    private Integer pageElements;
+    private final Integer page;
+    private final Integer pageElements;
 
     public PagingImpl(Integer page,
                       Integer pageSize,
