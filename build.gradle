@@ -16,7 +16,7 @@ ext {
 
     gsonVersion = '2.10.1'
 
-    postgresqlConVersion = '42.6.0'
+    postgresqlConVersion = '42.7.1'
 
     hikariCpVersion = '5.1.0'
 
@@ -54,6 +54,8 @@ dependencies {
     implementation "org.postgresql:postgresql:$postgresqlConVersion"
 
     implementation "com.zaxxer:HikariCP:$hikariCpVersion"
+
+    implementation "org.liquibase:liquibase-core:$liquibaseVersion"
 
     implementation "org.yaml:snakeyaml:$snakeyamlVersion"
 
