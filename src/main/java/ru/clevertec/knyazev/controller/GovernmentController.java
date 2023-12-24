@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Slf4j
-@WebServlet(value = "/services")
+@WebServlet(value = "/services/*")
 public class GovernmentController extends HttpServlet {
     private static final String APPLICATION_PDF_MIME_TYPE = "application/pdf";
     private static final String EMPTY_JSON = "{}";

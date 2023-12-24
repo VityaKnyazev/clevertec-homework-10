@@ -32,7 +32,8 @@ public class HttpServletUtil {
             String path = req.getPathInfo();
 
             if (path != null) {
-                pathParameter = path.split(URL_SEPARATOR)[path.length() - 1];
+                String[] splitPaths = path.split(URL_SEPARATOR);
+                pathParameter = splitPaths[splitPaths.length - 1];
             }
         } catch (IllegalArgumentException e) {
             log.debug(e.getMessage(), e);
