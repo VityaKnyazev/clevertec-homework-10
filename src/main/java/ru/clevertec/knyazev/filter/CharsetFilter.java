@@ -9,7 +9,7 @@ import org.springframework.util.MimeTypeUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-@WebFilter(urlPatterns = { "/services" }, filterName = "AcceptHeaderFilter")
+@WebFilter(urlPatterns = { "/services/*" }, filterName = "AcceptHeaderFilter")
 public class CharsetFilter implements Filter {
 	private static final String ACCEPT_HEADER = "accept";
 	private static final String PDF_TYPE = "application/pdf";
