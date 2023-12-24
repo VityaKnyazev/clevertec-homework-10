@@ -18,9 +18,9 @@ import ru.clevertec.knyazev.pagination.Paging;
 import ru.clevertec.knyazev.pagination.impl.PagingImpl;
 import ru.clevertec.knyazev.service.PersonService;
 import ru.clevertec.knyazev.service.exception.ServiceException;
+import ru.clevertec.knyazev.util.HttpServletUtil;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
@@ -28,7 +28,6 @@ import java.util.UUID;
 @Slf4j
 @WebServlet(value = "/persons")
 public class PersonController extends HttpServlet {
-    private static final String ID_REQUEST_PARAM = "id";
     private static final String PAGE_REQUEST_PARAM = "page";
     private static final String PAGE_SIZE_REQUEST_PARAM = "page_size";
 
@@ -55,7 +54,8 @@ public class PersonController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String idParam = req.getParameter(ID_REQUEST_PARAM);
+        String idParam = HttpServletUtil.getPathParameter(req);
+
         String pageParam = req.getParameter(PAGE_REQUEST_PARAM);
         String pageSizeParam = req.getParameter(PAGE_SIZE_REQUEST_PARAM);
 
@@ -86,7 +86,7 @@ public class PersonController extends HttpServlet {
                 jsonResult = gson.toJson(personDTOS);
             }
 
-            sendResponse(resp,
+            HttpServletUtil.sendResponse(resp,
                     HttpServletResponse.SC_OK,
                     StandardCharsets.UTF_8.name(),
                     MimeTypeUtils.APPLICATION_JSON_VALUE,
@@ -94,7 +94,7 @@ public class PersonController extends HttpServlet {
         } catch (IllegalArgumentException | ServiceException | DAOException e) {
             log.error(e.getMessage(), e);
 
-            sendResponse(resp,
+            HttpServletUtil.sendResponse(resp,
                     HttpServletResponse.SC_BAD_REQUEST,
                     StandardCharsets.UTF_8.name(),
                     MimeTypeUtils.APPLICATION_JSON_VALUE,
@@ -106,10 +106,10 @@ public class PersonController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
-            PersonDTO personDTO = parseJSONRequestBody(req);
+            PersonDTO personDTO = HttpServletUtil.parseJSONRequestBody(req, gson, PersonDTO.class);
             PersonDTO savedPerssonDTO = personServiceImpl.add(personDTO);
 
-            sendResponse(resp,
+            HttpServletUtil.sendResponse(resp,
                     HttpServletResponse.SC_CREATED,
                     StandardCharsets.UTF_8.name(),
                     MimeTypeUtils.APPLICATION_JSON_VALUE,
@@ -117,7 +117,7 @@ public class PersonController extends HttpServlet {
         } catch (IOException | JsonSyntaxException | ServiceException | DAOException e) {
             log.error(e.getMessage(), e);
 
-            sendResponse(resp,
+            HttpServletUtil.sendResponse(resp,
                     HttpServletResponse.SC_BAD_REQUEST,
                     StandardCharsets.UTF_8.name(),
                     MimeTypeUtils.APPLICATION_JSON_VALUE,
@@ -128,10 +128,10 @@ public class PersonController extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
-            PersonDTO personDTO = parseJSONRequestBody(req);
+            PersonDTO personDTO = HttpServletUtil.parseJSONRequestBody(req, gson, PersonDTO.class);
             personServiceImpl.update(personDTO);
 
-            sendResponse(resp,
+            HttpServletUtil.sendResponse(resp,
                     HttpServletResponse.SC_OK,
                     StandardCharsets.UTF_8.name(),
                     MimeTypeUtils.APPLICATION_JSON_VALUE,
@@ -139,7 +139,7 @@ public class PersonController extends HttpServlet {
         } catch (IOException | JsonSyntaxException | ServiceException | DAOException e) {
             log.error(e.getMessage(), e);
 
-            sendResponse(resp,
+            HttpServletUtil.sendResponse(resp,
                     HttpServletResponse.SC_BAD_REQUEST,
                     StandardCharsets.UTF_8.name(),
                     MimeTypeUtils.APPLICATION_JSON_VALUE,
@@ -149,13 +149,13 @@ public class PersonController extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-       String personIdParam = req.getParameter(ID_REQUEST_PARAM);
+       String personIdParam = HttpServletUtil.getPathParameter(req);
 
         try {
             UUID personId = UUID.fromString(personIdParam);
             personServiceImpl.remove(personId);
 
-            sendResponse(resp,
+            HttpServletUtil.sendResponse(resp,
                     HttpServletResponse.SC_OK,
                     StandardCharsets.UTF_8.name(),
                     MimeTypeUtils.APPLICATION_JSON_VALUE,
@@ -163,28 +163,11 @@ public class PersonController extends HttpServlet {
         } catch (IllegalArgumentException  | ServiceException | DAOException e) {
             log.error(e.getMessage(), e);
 
-            sendResponse(resp,
+            HttpServletUtil.sendResponse(resp,
                     HttpServletResponse.SC_BAD_REQUEST,
                     StandardCharsets.UTF_8.name(),
                     MimeTypeUtils.APPLICATION_JSON_VALUE,
                     EMPTY_JSON);
         }
-    }
-
-    private PersonDTO parseJSONRequestBody(HttpServletRequest req) throws IOException, JsonSyntaxException {
-        String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-        return gson.fromJson(body, PersonDTO.class);
-    }
-
-    private void sendResponse(HttpServletResponse resp,
-                              int codeStatus,
-                              String encoding,
-                              String contentType,
-                              String bodyMessage) throws IOException {
-        resp.setStatus(codeStatus);
-        resp.setCharacterEncoding(encoding);
-        resp.setContentType(contentType);
-        PrintWriter writer = resp.getWriter();
-        writer.append(bodyMessage);
     }
 }

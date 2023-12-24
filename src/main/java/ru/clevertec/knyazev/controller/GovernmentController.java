@@ -12,6 +12,7 @@ import ru.clevertec.knyazev.config.AppContextListener;
 import ru.clevertec.knyazev.pdf.exception.PDFDocumentException;
 import ru.clevertec.knyazev.service.GovernmentService;
 import ru.clevertec.knyazev.service.exception.ServiceException;
+import ru.clevertec.knyazev.util.HttpServletUtil;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -23,8 +24,7 @@ import java.util.UUID;
 @Slf4j
 @WebServlet(value = "/services")
 public class GovernmentController extends HttpServlet {
-    private static final String PERSON_ID_REQUEST_PARAM = "person_id";
-
+    private static final String APPLICATION_PDF_MIME_TYPE = "application/pdf";
     private static final String EMPTY_JSON = "{}";
 
     private GovernmentService governmentServiceImpl;
@@ -39,7 +39,7 @@ public class GovernmentController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String personIdParam = req.getParameter(PERSON_ID_REQUEST_PARAM);
+        String personIdParam = HttpServletUtil.getPathParameter(req);
 
         try {
             UUID personId = UUID.fromString(personIdParam);
@@ -49,7 +49,7 @@ public class GovernmentController extends HttpServlet {
             try (InputStream is = new FileInputStream(pdfLink)) {
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
-                resp.setContentType("application/pdf");
+                resp.setContentType(APPLICATION_PDF_MIME_TYPE);
                 resp.getOutputStream().write(is.readAllBytes());
             }
 
@@ -57,10 +57,11 @@ public class GovernmentController extends HttpServlet {
                  SecurityException | PDFDocumentException | ServiceException e) {
             log.error(e.getMessage(), e);
 
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            resp.setContentType(MimeTypeUtils.APPLICATION_JSON_VALUE);
-            resp.getWriter().append(EMPTY_JSON);
+            HttpServletUtil.sendResponse(resp,
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    StandardCharsets.UTF_8.name(),
+                    MimeTypeUtils.APPLICATION_JSON_VALUE,
+                    EMPTY_JSON);
         }
     }
 }
