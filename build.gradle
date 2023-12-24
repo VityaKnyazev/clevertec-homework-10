@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'io.freefair.lombok' version '8.4'
     id 'org.liquibase.gradle' version '2.2.0'
+
+    id 'war'
 }
 
 group = 'ru.clevertec.knyazev'
@@ -12,7 +14,9 @@ ext {
 
     jakartaServletApiVersion = '6.0.0'
 
-    postgresqlConVersion = '42.6.0'
+    gsonVersion = '2.10.1'
+
+    postgresqlConVersion = '42.7.1'
 
     hikariCpVersion = '5.1.0'
 
@@ -41,14 +45,17 @@ repositories {
 }
 
 dependencies {
-    implementation "org.springframework:spring-context:$springVersion"
     implementation "org.springframework:spring-jdbc:$springVersion"
 
     compileOnly "jakarta.servlet:jakarta.servlet-api:$jakartaServletApiVersion"
 
+    implementation "com.google.code.gson:gson:$gsonVersion"
+
     implementation "org.postgresql:postgresql:$postgresqlConVersion"
 
     implementation "com.zaxxer:HikariCP:$hikariCpVersion"
+
+    implementation "org.liquibase:liquibase-core:$liquibaseVersion"
 
     implementation "org.yaml:snakeyaml:$snakeyamlVersion"
 

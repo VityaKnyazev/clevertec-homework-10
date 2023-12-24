@@ -2,6 +2,7 @@ package ru.clevertec.knyazev.dao;
 
 import ru.clevertec.knyazev.dao.exception.DAOException;
 import ru.clevertec.knyazev.entity.Person;
+import ru.clevertec.knyazev.pagination.Paging;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,9 +28,18 @@ public interface PersonDAO {
      *
      * Find all persons
      *
-     * @return all persons
+     * @return all persons or empty list
      */
     List<Person> findAll();
+
+    /**
+     *
+     * Find all persons on given paging query
+     *
+     * @param paging paging param
+     * @return all persons on given paging query or empty list
+     */
+    List<Person> findAll(Paging paging);
 
     /**
      *

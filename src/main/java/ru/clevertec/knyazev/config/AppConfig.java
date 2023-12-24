@@ -1,18 +1,18 @@
 package ru.clevertec.knyazev.config;
 
+import com.google.gson.Gson;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ru.clevertec.knyazev.cache.AbstractCacheFactory;
 import ru.clevertec.knyazev.cache.Cache;
 import ru.clevertec.knyazev.cache.impl.DefaultCacheFactory;
 import ru.clevertec.knyazev.data.ServiceDTO;
+import ru.clevertec.knyazev.datasource.managing.DatabaseManager;
+import ru.clevertec.knyazev.datasource.managing.impl.LiquibaseDatabaseManagerImpl;
 import ru.clevertec.knyazev.entity.Person;
 import ru.clevertec.knyazev.pdf.PDFManager;
 import ru.clevertec.knyazev.pdf.impl.ServiceCheckPDFManagerImpl;
@@ -22,30 +22,15 @@ import javax.sql.DataSource;
 import java.util.List;
 import java.util.UUID;
 
-@Configuration
-@ComponentScan(basePackages = {"ru.clevertec.knyazev.dao.impl",
-        "ru.clevertec.knyazev.dao.proxy",
-        "ru.clevertec.knyazev.mapper",
-        "ru.clevertec.knyazev.service.impl"})
+
 public class AppConfig {
 
     private static final String PROPERTY_FILE = "application.yaml";
 
-    @Bean
     YAMLParser yamlParser() {
         return new YAMLParser(PROPERTY_FILE);
     }
 
-    @Bean
-    CacheProperties cacheProperties(YAMLParser yamlParser) {
-        return CacheProperties.builder()
-                .algorithm(yamlParser.getProperty("cache", "algorithm"))
-                .size(Integer.valueOf(
-                        yamlParser.getProperty("cache", "size")))
-                .build();
-    }
-
-    @Bean
     DataSourceProperties dataSourceProperties(YAMLParser yamlParser) {
         return DataSourceProperties.builder()
                 .driverClassName(yamlParser.getProperty("datasource", "driverClassName"))
@@ -59,7 +44,34 @@ public class AppConfig {
                 .build();
     }
 
-    @Bean
+    DataSourceManagementProperties dataSourceManagementProperties(YAMLParser yamlParser) {
+        return DataSourceManagementProperties.builder()
+                .initOnStartup(Boolean.parseBoolean(yamlParser.getProperty("datasourceManagement",
+                        "initOnStartup")))
+                .build();
+    }
+
+    LiquibaseProperties liquibaseProperties(YAMLParser yamlParser) {
+        return LiquibaseProperties.builder()
+                .changelogFile(yamlParser.getProperty("liquibase", "changelogFile"))
+                .build();
+    }
+
+    PagingProperties pagingProperties(YAMLParser yamlParser) {
+        return PagingProperties.builder()
+                .defaultPageSize(Integer.parseInt(yamlParser.getProperty("paging", "defaultPageSize")))
+                .defaultPage(Integer.parseInt(yamlParser.getProperty("paging", "defaultPage")))
+                .build();
+    }
+
+    CacheProperties cacheProperties(YAMLParser yamlParser) {
+        return CacheProperties.builder()
+                .algorithm(yamlParser.getProperty("cache", "algorithm"))
+                .size(Integer.valueOf(
+                        yamlParser.getProperty("cache", "size")))
+                .build();
+    }
+
     PDFProperties pdfProperties(YAMLParser yamlParser) {
         return PDFProperties.builder()
                 .pdfTemplatePath(yamlParser.getProperty("pdf", "templatePath"))
@@ -69,18 +81,23 @@ public class AppConfig {
                 .build();
     }
 
+    PDFProperties serverPDFProperties(YAMLParser yamlParser) {
+        return PDFProperties.builder()
+                .pdfTemplatePath(yamlParser.getProperty("pdf", "templatePath"))
+                .pdfPath(System.getProperty("java.io.tmpdir"))
+                .pdfFontPath(yamlParser.getProperty("pdf", "documentFontPath"))
+                .pdfFontEncoding(yamlParser.getProperty("pdf", "documentFontEncoding"))
+                .build();
+    }
 
-    @Bean
     AbstractCacheFactory defaultCacheFactory(CacheProperties cacheProperties) {
         return new DefaultCacheFactory(cacheProperties.algorithm(), cacheProperties.size());
     }
 
-    @Bean
     Cache<UUID, Person> personCache(AbstractCacheFactory defaultCacheFactory) {
         return defaultCacheFactory.initCache();
     }
 
-    @Bean
     PDFManager<List<ServiceDTO>> serviceCheckPDFManagerImpl(PDFProperties pdfProperties) {
         return new ServiceCheckPDFManagerImpl(pdfProperties.pdfTemplatePath(),
                 pdfProperties.pdfPath(),
@@ -88,7 +105,6 @@ public class AppConfig {
                 pdfProperties.pdfFontEncoding());
     }
 
-    @Bean
     ValidatorFactory validatorFactory() {
         return Validation.byDefaultProvider()
                 .configure()
@@ -96,7 +112,6 @@ public class AppConfig {
                 .buildValidatorFactory();
     }
 
-    @Bean
     DataSource hikariDataSource(DataSourceProperties dataSourceProperties) {
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setDriverClassName(dataSourceProperties.driverClassName());
@@ -109,8 +124,20 @@ public class AppConfig {
         return new HikariDataSource(hikariConfig);
     }
 
-    @Bean
+    DatabaseManager liquibaseDatabaseManager(DataSourceProperties dataSourceProperties,
+                                             LiquibaseProperties liquibaseProperties) {
+        return new LiquibaseDatabaseManagerImpl(dataSourceProperties.driverClassName(),
+                dataSourceProperties.jdbcUrl(),
+                dataSourceProperties.username(),
+                dataSourceProperties.password(),
+                liquibaseProperties.changelogFile());
+    }
+
     JdbcTemplate jdbcTemplate(DataSource hikariDataSource) {
         return new JdbcTemplate(hikariDataSource);
+    }
+
+    Gson gson() {
+        return new Gson();
     }
 }

@@ -6,6 +6,16 @@ datasource:
    password: admin
    maxPoolSize: 3
    connectionTimeout: 3000
+#datasource management config
+datasourceManagement:
+   initOnStartup: true
+#liquibase config
+liquibase:
+   changelogFile: liquibase/db-government-changelog.xml
+#paging config
+paging:
+   defaultPage: 1
+   defaultPageSize: 20
 #cache config
 cache:
    algorithm: LFU

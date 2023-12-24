@@ -3,13 +3,12 @@ package ru.clevertec.knyazev.service.impl;
 import jakarta.validation.ValidatorFactory;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import ru.clevertec.knyazev.dao.PersonDAO;
 import ru.clevertec.knyazev.dao.proxy.PersonDaoProxy;
 import ru.clevertec.knyazev.data.PersonDTO;
 import ru.clevertec.knyazev.entity.Person;
 import ru.clevertec.knyazev.mapper.PersonMapper;
+import ru.clevertec.knyazev.pagination.Paging;
 import ru.clevertec.knyazev.service.PersonService;
 import ru.clevertec.knyazev.service.exception.ServiceException;
 
@@ -19,7 +18,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Service
 @NoArgsConstructor
 @AllArgsConstructor
 public class PersonServiceImpl implements PersonService {
@@ -31,7 +29,6 @@ public class PersonServiceImpl implements PersonService {
     private PersonMapper personMapperImpl;
     private ValidatorFactory validatorFactory;
 
-    @Autowired
     public PersonServiceImpl(PersonDaoProxy personDaoProxy,
                              PersonMapper personMapperImpl,
                              ValidatorFactory validatorFactory) {
@@ -62,6 +59,14 @@ public class PersonServiceImpl implements PersonService {
     @Override
     public List<PersonDTO> getAll() {
         return personMapperImpl.toPersonDTOs(personDAOImpl.findAll());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<PersonDTO> getAll(Paging paging) {
+        return personMapperImpl.toPersonDTOs(personDAOImpl.findAll(paging));
     }
 
     /**

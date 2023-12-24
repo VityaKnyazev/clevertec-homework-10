@@ -2,16 +2,15 @@ package ru.clevertec.knyazev.dao.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Repository;
 import ru.clevertec.knyazev.dao.PersonDAO;
 import ru.clevertec.knyazev.dao.exception.DAOException;
 import ru.clevertec.knyazev.entity.Person;
+import ru.clevertec.knyazev.pagination.Paging;
 
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
@@ -20,11 +19,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
-@Repository
-@AllArgsConstructor(onConstructor_ = {@Autowired})
+@AllArgsConstructor
 public class PersonDAOImpl implements PersonDAO {
     private static final String FIND_BY_ID = "SELECT id, name, surname, email, citizenship, age FROM person WHERE id=?";
     private static final String FIND_ALL = "SELECT id, name, surname, email, citizenship, age FROM person";
+    private static final String FIND_ALL_PAGING = "SELECT id, name, surname, email, citizenship, age FROM person LIMIT ? OFFSET ?";
     private static final String SAVE = "INSERT INTO person(name, surname, email, citizenship, age) VALUES(?,?,?,?,?)";
     private static final String UPDATE = """
             UPDATE person SET name = ?, surname = ?, email = ?, citizenship = ?, age = ? WHERE id = ?
@@ -43,7 +42,6 @@ public class PersonDAOImpl implements PersonDAO {
      */
     @Override
     public Optional<Person> findById(UUID id) {
-
         Optional<Person> personWrap = Optional.empty();
 
         try {
@@ -62,11 +60,29 @@ public class PersonDAOImpl implements PersonDAO {
      */
     @Override
     public List<Person> findAll() {
-
         List<Person> persons = new ArrayList<>();
 
         try {
             persons = jdbcTemplate.query(FIND_ALL, new BeanPropertyRowMapper<>(Person.class));
+        } catch (DataAccessException e) {
+            log.error(SEARCHING_ERROR, e.getMessage(), e);
+        }
+
+        return persons;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Person> findAll(Paging paging) {
+        List<Person> persons = new ArrayList<>();
+
+        try {
+            persons = jdbcTemplate.query(FIND_ALL_PAGING,
+                    new BeanPropertyRowMapper<>(Person.class),
+                    paging.getLimit(),
+                    paging.getOffset());
         } catch (DataAccessException e) {
             log.error(SEARCHING_ERROR, e.getMessage(), e);
         }
